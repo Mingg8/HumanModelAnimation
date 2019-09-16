@@ -1,13 +1,12 @@
-#defien GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
 
+#include "../include/camera.h"
+#include <iostream>
 #ifdef __APPLE__
     #include <GLUT/glut.h>
 #else
     #include <GL/glut.h>
 #endif
-
-#include <iostream>
-#include "../include/camera.h"
 
 static Camera camera;
 
@@ -43,7 +42,7 @@ void spinDisplay(int millisec)
         if (spin > 360.0)
             spin = spin - 360.0;
         glutPostRedisplay();
-        glutTimeFunc(10, spinDisplay, 1);
+        glutTimerFunc(10, spinDisplay, 1);
     }
 }
 
