@@ -1,5 +1,12 @@
+#defien GL_SILENCE_DEPRECATION
+
+#ifdef __APPLE__
+    #include <GLUT/glut.h>
+#else
+    #include <GL/glut.h>
+#endif
+
 #include <iostream>
-#include <GL/glut.h>
 #include "../include/camera.h"
 
 static Camera camera;
@@ -11,6 +18,9 @@ static bool mouseRotatePressed = false;
 static bool mouseMovePressed   = false;
 static bool mouseZoomPressed   = false;
 static int lastX = 0, lastY = 0, lastZoom = 0;
+
+static GLfloat spin = 0.0;
+static bool spinning = false;
 
 static bool fullScreen = false;
 
@@ -25,9 +35,63 @@ void reshape(int w, int h)
 	camera.resize(w, h);
 }
 
+void spinDisplay(int millisec)
+{
+    if (spinning == true)
+    {
+        spin = spin + 2.0;
+        if (spin > 360.0)
+            spin = spin - 360.0;
+        glutPostRedisplay();
+        glutTimeFunc(10, spinDisplay, 1);
+    }
+}
+
+void drawTriangle()
+{
+    glPushMatrix();
+    glRotatef(spin, 0.0, 0.0, 1.0);
+    glColor3f(1.0, 0.3, 0.2);
+    glBegin(GL_POLYGON);
+    glVertex3f(0.25, 0.25, 0.5);
+    glVertex3f(0.75, 0.25, 0.5);
+    glVertex3f(0.25, 0.75, 0.5);
+    glEnd();
+    glPopMatrix();
+}
+
+void drawCoordinates() {
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(1.0, 0.0, 0.0);
+    glEnd();
+
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0.0, 1.0, 0.0);
+    glEnd();
+
+    glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0.0, 0.0, 1.0);
+    glEnd();
+}
+
 void drawMyObject()
 {
 
+}
+
+void display_spinning()
+{
+	glLoadIdentity();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	camera.apply();
+    drawCoordinates();
+    drawTriangle();
+
+	glutSwapBuffers();
 }
 
 void display()
@@ -58,6 +122,33 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 			break;
 	}
 	glutPostRedisplay();
+}
+
+void mouse(int button, int state, int x, int y)
+{
+    if (spinning == false) {
+        switch (button) {
+            case GLUT_LEFT_BUTTON:
+                if (state == GLUT_DOWN) {
+                    spinning = true;
+                    glutTimerFunc(10, spinDisplay, 1);
+                    break;
+                }
+            default:
+                break;
+        }
+    } else {
+        switch (button) {
+            case GLUT_LEFT_BUTTON:
+                if (state==GLUT_DOWN) {
+                    
+                    spinning = false;
+                    break;
+                }
+            default:
+                break;
+        }
+    }
 }
 
 void mouseCB(int button, int state, int x, int y)

@@ -1,4 +1,4 @@
-LIBS = -lGL -lGLU -lglut
+LIBS = -framework OpenGL -framework GLUT
 
 all : main.o camera.o node.o
 	g++ -std=c++11 main.o camera.o $(LIBS) -o main
