@@ -1,7 +1,13 @@
+#define GL_SILENCE_DEPRECATION
 #include "../include/camera.h"
-#include <GL/glu.h>
-#include <cmath>
 #include <iostream>
+#ifdef __APPLE__
+  #include <OpenGL/glu.h>
+#else
+  #include <GL/glu.h>
+#endif
+
+#include <cmath>
 
 #define TRACKBALLSIZE  (0.6f)
 
