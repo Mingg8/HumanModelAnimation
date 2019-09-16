@@ -1,7 +1,9 @@
 #define GL_SILENCE_DEPRECATION
 
 #include "../include/camera.h"
+#include "../include/node.h"
 #include <iostream>
+#include <memory>
 #ifdef __APPLE__
     #include <GLUT/glut.h>
 #else
@@ -22,6 +24,14 @@ static GLfloat spin = 0.0;
 static bool spinning = false;
 
 static bool fullScreen = false;
+
+static double pelvis_radius = 0.15/2;
+static double pelvis_height = 0.80;
+static double pelvis_width = 0.40;
+static double foot_height = 0.05;
+static double leg_height = (pelvis_height - foot_height - pelvis_radius)/2;
+
+TreeNode* body_root = new TreeNode();
 
 void drawTeapot(int size)
 {
@@ -77,9 +87,48 @@ void drawCoordinates() {
     glEnd();
 }
 
-void drawMyObject()
+void setUpMyHuman()
 {
+    Eigen::Matrix4f R_01;
+    R_01 << 0, 0, 1, 0,
+         1, 0, 0, 0,
+         0, 1, 0, pelvis_height; 
+         0, 0, 0, 1;
 
+    Joint* joint_01 = new Joint(Joint::FLOATING, R_01);
+    TreeNode* body_1 = new TreeNode(1, TreeNode::BOX);
+    body_1->setParent(body_root, joint_01);
+
+    TreeNode* body_2 = new TreeNode(2, TreeNode::CYLINDER);
+    Eigen::Matrix4f offset;
+    offset << 0, 0, 1, -pelvis_radius,
+        1, 0, 0, 0,
+        0, 1, 0, -pelvis_width/2,
+        0, 0, 0, 1;
+    Joint* joint_12 = new Joint(Joint::BALL_SOCKET, offset);
+    body_2->setParent(body_1, joint_12);
+
+    TreeNode* body_3 = new TreeNode(3, TreeNode::CYLINDER);
+    offset(2, 3) = pelvis_width/2;
+    Joint* joint_13 = new Joint(Joint::BALL_SOCKET, offset);
+    body_3->setParent(body_1, joint_13);
+
+    TreeNode* body_12 = new TreeNode(12, TreeNode::CYLINDER);
+    offset << 1, 0, 0, -leg_height,
+           0, 1, 0, 0,
+           0, 0, 1, 0,
+           0, 0, 0, 1;
+    Joint* joint_2_12 = new Joint(Joint::REVOLUTE, offset);
+    body_12->setParent(body_2, joint_2_12);
+
+    TreeNode* body_14 = new TreeNode(14, TreeNode::CYLINDER);
+    Joint* joint_3_14 = new Joint(Joint::REVOLUTE, offset);
+    body_14->setParent(body_3, joint_3_14);
+}
+
+void drawMyHuman()
+{
+    
 }
 
 void display_spinning()

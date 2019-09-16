@@ -2,19 +2,15 @@
 
 TreeNode::TreeNode() {};
 
-TreeNode::TreeNode(int _num)
+TreeNode::TreeNode(int _num, shape the_link_shape)
 {
     num = _num;
     parent = NULL;
+    link_shape = the_link_shape;
 }
 
-void TreeNode::appendChild(TreeNode *child)
+void TreeNode::setParent(TreeNode *the_parent, Joint *the_joint)
 {
-    child->setParent(this);
-    children.push_back(child);
-}
-
-void TreeNode::setParent(TreeNode *theParent)
-{
-    parent = theParent;
+    parent = the_parent;
+    joint = the_joint;
 }

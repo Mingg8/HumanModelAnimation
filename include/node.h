@@ -9,17 +9,18 @@ using namespace std;
 
 class TreeNode
 {
+ public:
+    enum shape {SPHERE, CYLINDER, BOX};
+    TreeNode();
+    TreeNode(int, shape);
+    void setParent(TreeNode *parent, Joint *joint);
+
  private:
     int num;
     TreeNode *parent;
+    Joint *joint;
     std::vector<TreeNode *> children;
-
-
- public:
-    TreeNode();
-    TreeNode(int num);
-    void appendChild(TreeNode *child);
-    void setParent(TreeNode *parent);
+    shape link_shape;
 };
 
 #endif
