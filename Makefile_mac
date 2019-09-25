@@ -11,6 +11,7 @@ camera.o : include/camera.h
 
 node.o : include/node.h
 	g++ -std=c++11 -I /usr/local/include/eigen3/ -c -g src/node.cpp $(LIBS) -o node.o
+
 joint.o : include/joint.h
 	g++ -std=c++11 -I /usr/local/include/eigen3/ -c -g src/joint.cpp $(LIBS) -o joint.o
 clean :

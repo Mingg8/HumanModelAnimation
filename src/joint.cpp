@@ -1,8 +1,18 @@
 #include "../include/joint.h"
 
-Joint::Joint(JointType the_type, Matrix4f the_offset)
+Joint::Joint(Matrix4f the_offset)
 {
-    type = the_type;
     offset = the_offset;
 }
 
+Revolute::Revolute(Matrix4f the_offset) {
+    offset = the_offset;
+}
+
+BallSocket::BallSocket(Matrix4f the_offset) {
+    offset = the_offset;
+}
+
+Floating::Floating(Matrix4f the_offset) {
+    offset = the_offset;
+}

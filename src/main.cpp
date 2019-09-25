@@ -31,7 +31,7 @@ static double pelvis_width = 0.40;
 static double foot_height = 0.05;
 static double leg_height = (pelvis_height - foot_height - pelvis_radius)/2;
 
-TreeNode* body_root = new TreeNode();
+TreeNode* body_root = new TreeNode(0);
 
 void drawTeapot(int size)
 {
@@ -69,24 +69,6 @@ void drawTriangle()
     glPopMatrix();
 }
 
-void drawCoordinates() {
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(1.0, 0.0, 0.0);
-    glEnd();
-
-    glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(0.0, 1.0, 0.0);
-    glEnd();
-
-    glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(0.0, 0.0, 1.0);
-    glEnd();
-}
-
 void setUpMyHuman()
 {
     Eigen::Matrix4f R_01;
@@ -95,51 +77,54 @@ void setUpMyHuman()
          0, 1, 0, pelvis_height; 
          0, 0, 0, 1;
 
-    Joint* joint_01 = new Joint(Joint::FLOATING, R_01);
-    TreeNode* body_1 = new TreeNode(1, TreeNode::BOX);
+    Floating* joint_01 = new Floating(R_01);
+    BoxNode* body_1 = new BoxNode(1, 0.0, 0.0, 0.0);
     body_1->setParent(body_root, joint_01);
 
-    TreeNode* body_2 = new TreeNode(2, TreeNode::CYLINDER);
+    CylinderNode* body_2 = new CylinderNode(2, 0.0, 0.0);
     Eigen::Matrix4f offset;
     offset << 0, 0, 1, -pelvis_radius,
         1, 0, 0, 0,
         0, 1, 0, -pelvis_width/2,
         0, 0, 0, 1;
-    Joint* joint_12 = new Joint(Joint::BALL_SOCKET, offset);
+    BallSocket* joint_12 = new BallSocket(offset);
     body_2->setParent(body_1, joint_12);
 
-    TreeNode* body_3 = new TreeNode(3, TreeNode::CYLINDER);
+    CylinderNode* body_3 = new CylinderNode(3, 0.0, 0.0);
     offset(2, 3) = pelvis_width/2;
-    Joint* joint_13 = new Joint(Joint::BALL_SOCKET, offset);
+    BallSocket* joint_13 = new BallSocket(offset);
     body_3->setParent(body_1, joint_13);
 
-    TreeNode* body_12 = new TreeNode(12, TreeNode::CYLINDER);
+    CylinderNode* body_12 = new CylinderNode(12, 0.0, 0.0);
     offset << 1, 0, 0, -leg_height,
            0, 1, 0, 0,
            0, 0, 1, 0,
            0, 0, 0, 1;
-    Joint* joint_2_12 = new Joint(Joint::REVOLUTE, offset);
+    Revolute* joint_2_12 = new Revolute(offset);
     body_12->setParent(body_2, joint_2_12);
 
-    TreeNode* body_14 = new TreeNode(14, TreeNode::CYLINDER);
-    Joint* joint_3_14 = new Joint(Joint::REVOLUTE, offset);
+    CylinderNode* body_14 = new CylinderNode(14, 0.0, 0.0);
+    Revolute* joint_3_14 = new Revolute(offset);
     body_14->setParent(body_3, joint_3_14);
 }
 
-void drawMyHuman()
+void drawMyHuman(int size)
 {
+    glColor3f(0.8,0.3,0.3);
+//    glutSolidTeapot(size);
+    while (true) {
+        
+    }
+    glPushMatrix();
+    glRotatef(spin, 0.0, 0.0, 1.0);
+    glColor3f(1.0, 0.3, 0.2);
+    glBegin(GL_POLYGON);
+    glVertex3f(0.25, 0.25, 0.5);
+    glVertex3f(0.75, 0.25, 0.5);
+    glVertex3f(0.25, 0.75, 0.5);
+    glEnd();
+    glPopMatrix();
     
-}
-
-void display_spinning()
-{
-	glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	camera.apply();
-    drawCoordinates();
-    drawTriangle();
-
-	glutSwapBuffers();
 }
 
 void display()
@@ -170,33 +155,6 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 			break;
 	}
 	glutPostRedisplay();
-}
-
-void mouse(int button, int state, int x, int y)
-{
-    if (spinning == false) {
-        switch (button) {
-            case GLUT_LEFT_BUTTON:
-                if (state == GLUT_DOWN) {
-                    spinning = true;
-                    glutTimerFunc(10, spinDisplay, 1);
-                    break;
-                }
-            default:
-                break;
-        }
-    } else {
-        switch (button) {
-            case GLUT_LEFT_BUTTON:
-                if (state==GLUT_DOWN) {
-                    
-                    spinning = false;
-                    break;
-                }
-            default:
-                break;
-        }
-    }
 }
 
 void mouseCB(int button, int state, int x, int y)

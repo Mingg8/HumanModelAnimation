@@ -10,17 +10,45 @@ using namespace std;
 class TreeNode
 {
  public:
-    enum shape {SPHERE, CYLINDER, BOX};
-    TreeNode();
-    TreeNode(int, shape);
+    TreeNode() {};
+    TreeNode(int the_num);
     void setParent(TreeNode *parent, Joint *joint);
+    void draw();
 
  private:
-    int num;
     TreeNode *parent;
     Joint *joint;
     std::vector<TreeNode *> children;
-    shape link_shape;
+ protected:
+    int num;
+};
+
+class SphereNode: public TreeNode {
+ public:
+    SphereNode(int the_num, double r);
+    void draw();
+ private:
+    double radius;
+};
+
+class CylinderNode: public TreeNode {
+ public:
+    CylinderNode(int the_num, double r, double l);
+    
+ private:
+    double radius;
+    double length;
+    void draw();
+};
+
+class BoxNode: public TreeNode {
+ public:
+    BoxNode(int the_num, double w, double h, double d);
+    void draw();
+ private:
+    double height;
+    double depth;
+    double width;
 };
 
 #endif

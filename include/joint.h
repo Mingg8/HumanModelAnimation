@@ -9,13 +9,34 @@ using namespace Eigen;
 
 class Joint
 {
-  public:
-    enum JointType {REVOLUTE, BALL_SOCKET, FLOATING};
-    Joint(JointType, Matrix4f);
+ public:
+    Joint() {};
+    Joint(Matrix4f);
 
-  private:
-    JointType type;
+ protected:
     Matrix4f offset;
+};
+
+class Revolute: public Joint {
+ public:
+    Revolute(Matrix4f the_offset);
+ private:
+    double angle_z;
+};
+
+class BallSocket: public Joint {
+ public:
+    BallSocket(Matrix4f the_offset);
+ private:
+};
+
+class Floating: public Joint {
+ public:
+    Floating(Matrix4f the_offset);
+ private:
+    double x;
+    double y;
+    double z;
     double angle_x;
     double angle_y;
     double angle_z;
