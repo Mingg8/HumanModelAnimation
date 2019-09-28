@@ -35,7 +35,6 @@ Joint* TreeNode::getJoint()
 }
 
 void TreeNode::draw() {
-    cout << "treenode draw" <<endl;
 }
 
 SphereNode::SphereNode(int the_num, float r) {

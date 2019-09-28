@@ -21,29 +21,25 @@ static bool mouseMovePressed   = false;
 static bool mouseZoomPressed   = false;
 static int lastX = 0, lastY = 0, lastZoom = 0;
 
-static GLfloat spin = 0.0;
-static bool spinning = false;
-
 static bool fullScreen = false;
 
-static double pelvis_radius = 0.15/2;
-static double foot_height = 0.05;
-static double leg_height = 0.5;
-static double leg_radius = 0.15/2;
-static double foot_width = 0.10;
-static double foot_length = 0.25;
-static double upper_body_height = 0.5;
-static double upper_body_depth = 0.15;;
-static double upper_body_width = 0.4;
-static double head_radius = 0.1;
-static double leg_offset = 0.05+0.15/2;
-
-
+static float pelvis_radius = 0.15/2;
+static float foot_height = 0.05;
+static float leg_height = 0.5;
+static float leg_radius = 0.15/2;
+static float foot_width = 0.10;
+static float foot_length = 0.25;
+static float upper_body_height = 0.5;
+static float upper_body_depth = 0.15;;
+static float upper_body_width = 0.4;
+static float head_radius = 0.1;
+static float leg_offset = 0.05+0.15/2;
+static float arm_radius = 0.05;
+static float arm_length = 0.4;
 
 void drawMyHuman(BoxNode *node);
 
 TreeNode* body_root = new TreeNode(0);
-int max_body_num = 0;
 
 
 void reshape(int w, int h)
@@ -51,27 +47,14 @@ void reshape(int w, int h)
 	camera.resize(w, h);
 }
 
-void drawTriangle()
-{
-    glPushMatrix();
-    glRotatef(spin, 0.0, 0.0, 1.0);
-    glColor3f(1.0, 0.3, 0.2);
-    glBegin(GL_POLYGON);
-    glVertex3f(0.25, 0.25, 0.5);
-    glVertex3f(0.75, 0.25, 0.5);
-    glVertex3f(0.25, 0.75, 0.5);
-    glEnd();
-    glPopMatrix();
-}
-
 void setUpMyHuman()
 {
-    double pelvis_height = leg_height*2 + foot_height + pelvis_radius;
+    float pelvis_height = leg_height*2 + foot_height + pelvis_radius;
     Eigen::Matrix4f R_01;
     R_01 << 0, 0, -1, 0,
-         0, 1, 0, 0,
-         1, 0, 0, pelvis_height,
-         0, 0, 0, 1;
+             0, 1, 0, 0,
+             1, 0, 0, pelvis_height,
+             0, 0, 0, 1;
     
     // pelvis
     Floating* joint_01 = new Floating(R_01);
@@ -134,29 +117,83 @@ void setUpMyHuman()
     Revolute* joint_14_15 = new Revolute(parent_joint, joint_child);
     body_15->setParent(body_14, joint_14_15);
     
-    max_body_num = 14;
+    // body
+    BoxNode* body_4 = new BoxNode(4, upper_body_width, upper_body_height, upper_body_depth);
+    parent_joint << 0, 1, 0, 0,
+                    1, 0, 0, 0,
+                    0, 0, -1, 0,
+                    0, 0, 0, 1;
+    joint_child << 0, 1, 0, upper_body_height/2,
+                    0, 0, 1, 0,
+                    1, 0, 0, 0,
+                    0, 0, 0, 1;
+    Revolute* joint_1_4 = new Revolute(parent_joint, joint_child);
+    body_4->setParent(body_1, joint_1_4);
+    
+    // right arm
+    CylinderNode* body_6 = new CylinderNode(6, arm_radius, arm_length);
+    parent_joint << 0, -1, 0, -upper_body_width/2,
+                    1, 0, 0, upper_body_height/2,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1;
+    joint_child << 0, 0, 1, -arm_length/2,
+                    0, -1, 0, 0,
+                    1, 0, 0, 0,
+                    0, 0, 0, 1;
+    BallSocket* joint_4_6 = new BallSocket(parent_joint, joint_child);
+    body_6->setParent(body_4, joint_4_6);
+    
+    // left arm
+    CylinderNode* body_7 = new CylinderNode(7, arm_radius, arm_length);
+    parent_joint << 0, 1, 0, upper_body_width/2,
+                    -1, 0, 0, upper_body_height/2,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1;
+    joint_child << 0, 0, -1, arm_length/2,
+                    0, 1, 0, 0,
+                    1, 0, 0, 0,
+                    0, 0, 0, 1;
+    BallSocket* joint_4_7 = new BallSocket(parent_joint, joint_child);
+    body_7->setParent(body_4, joint_4_7);
+    
+    // right lower arm
+    CylinderNode* body_8 = new CylinderNode(8, arm_radius, arm_length);
+    parent_joint << 1, 0, 0, 0,
+                    0, 0, -1, 0,
+                    0, 1, 0, -arm_length/2,
+                    0, 0, 0, 1;
+    joint_child << 1, 0, 0, 0,
+                    0, 0, 1, -arm_length/2,
+                    0, -1, 0, 0,
+                    0, 0, 0, 1;
+    Revolute *joint_6_8 = new Revolute(parent_joint, joint_child);
+    body_8->setParent(body_6, joint_6_8);
+
+    // left lower arm
+    CylinderNode* body_10 = new CylinderNode(10, arm_radius, arm_length);
+    parent_joint << 0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    1, 0, 0, -arm_length/2,
+                    0, 0, 0, 1;
+    joint_child << 0, 0, 1, -arm_length/2,
+                    1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 0, 1;
+    Revolute *joint_7_10 = new Revolute(parent_joint, joint_child);
+    body_10->setParent(body_7, joint_7_10);
+    
 }
 
 void drawMyHuman(TreeNode *node)
 {
     node->draw();
     vector<TreeNode*> children_vec = node->getChildren();
-    cout << "node id: " << node->getId() << ", num of children: " << children_vec.size() << endl;
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i]->getJoint();
         glPushMatrix();
-        cout << j->p2j_trans[0] <<  " " << j->p2j_trans[1] << " "<< j->p2j_trans[2] << endl;
-        cout <<j->p2j_aa[0] << " " << j->p2j_aa[1] << " " << j->p2j_aa[2] << " " << j->p2j_aa[3] << endl;
-        glTranslatef(j->p2j_trans[0], j->p2j_trans[1], j->p2j_trans[2]);
-        glRotatef(j->p2j_aa[0], j->p2j_aa[1], j->p2j_aa[2], j->p2j_aa[3]);
-
-        // rotate by some angle
+        j->transform();
         
-        cout << j->j2c_trans[0] <<  " " << j->j2c_trans[1] << " "<< j->j2c_trans[2] << endl;
-        cout <<j->j2c_aa[0] << " " << j->j2c_aa[1] << " " << j->j2c_aa[2] << " " << j->j2c_aa[3] << endl;
 
-        glTranslatef(j->j2c_trans[0], j->j2c_trans[1], j->j2c_trans[2]);
-        glRotatef(j->j2c_aa[0], j->j2c_aa[1], j->j2c_aa[2], j->j2c_aa[3]);
         drawMyHuman(children_vec[i]);
         
         glPopMatrix();
