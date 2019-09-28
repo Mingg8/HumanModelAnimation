@@ -5,6 +5,14 @@
 #include <vector>
 #include "joint.h"
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
+#define M_PI 3.141592
+
 using namespace std;
 
 class TreeNode
@@ -13,7 +21,14 @@ class TreeNode
     TreeNode() {};
     TreeNode(int the_num);
     void setParent(TreeNode *parent, Joint *joint);
-    void draw();
+    void addToChildren(TreeNode *child);
+    
+    vector<TreeNode *> getChildren();
+    int getId();
+    Joint* getJoint();
+    
+    virtual void draw();
+    
 
  private:
     TreeNode *parent;
@@ -25,30 +40,31 @@ class TreeNode
 
 class SphereNode: public TreeNode {
  public:
-    SphereNode(int the_num, double r);
+    SphereNode(int the_num, float r);
     void draw();
  private:
-    double radius;
+    float radius;
 };
 
 class CylinderNode: public TreeNode {
  public:
-    CylinderNode(int the_num, double r, double l);
+    CylinderNode(int the_num, float r, float l);
+    void draw();
     
  private:
-    double radius;
-    double length;
-    void draw();
+    float radius;
+    float length;
 };
 
 class BoxNode: public TreeNode {
  public:
-    BoxNode(int the_num, double w, double h, double d);
+    BoxNode(int the_num, float w, float h, float d);
     void draw();
+    
  private:
-    double height;
-    double depth;
-    double width;
+    float height;
+    float depth;
+    float width;
 };
 
 #endif
