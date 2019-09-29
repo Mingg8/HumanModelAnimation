@@ -52,8 +52,8 @@ void reshape(int w, int h)
 
 void setUpMyHuman()
 {
-    float pelvis_height = leg_height*2 + foot_height + pelvis_radius;
-    Eigen::Matrix4f R_01;
+    double pelvis_height = leg_height*2 + foot_height + pelvis_radius;
+    Eigen::Matrix4d R_01;
     R_01 << 0, 0, -1, 0,
              0, 1, 0, 0,
              1, 0, 0, pelvis_height,
@@ -66,7 +66,7 @@ void setUpMyHuman()
     
     // right upper leg
     CylinderNode* body_2 = new CylinderNode(2, leg_radius, leg_height);
-    Eigen::Matrix4f parent_joint, joint_child;
+    Eigen::Matrix4d parent_joint, joint_child;
     parent_joint << 1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, (leg_offset+upper_body_width/2),

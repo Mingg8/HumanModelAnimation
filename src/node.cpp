@@ -64,7 +64,7 @@ void CylinderNode::draw() {
     
 }
 
-BoxNode::BoxNode(int the_num, float w, float h, float d) {
+BoxNode::BoxNode(int the_num, double w, double h, double d) {
     num = the_num;
     width = w;
     height = h;

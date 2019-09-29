@@ -2,7 +2,7 @@
 #include "../include/joint.h"
 
 
-Joint::Joint(Matrix4f the_parent_offset, Matrix4f the_child_offset)
+Joint::Joint(Matrix4d the_parent_offset, Matrix4d the_child_offset)
 {
     parent_to_joint = the_parent_offset;
     joint_to_child = the_child_offset;
@@ -16,10 +16,10 @@ Joint::Joint(Matrix4f the_parent_offset, Matrix4f the_child_offset)
     }
 }
 
-void Joint::rotation2angleaxis(Matrix4f m, float *aa)
+void Joint::rotation2angleaxis(Matrix4d m, double *aa)
 {
-    float cos_theta = (m(0,0) + m(1,1) + m(2,2) - 1) /2;
-    float sin_theta = sqrt(1-cos_theta*cos_theta);
+    double cos_theta = (m(0,0) + m(1,1) + m(2,2) - 1) /2;
+    double sin_theta = sqrt(1-cos_theta*cos_theta);
     if (sin_theta != 0) {
         aa[1] = (m(2,1) - m(1,2))/(2*sin_theta);
         aa[2] = (m(0,2) - m(2,0))/(2*sin_theta);
@@ -49,11 +49,11 @@ void Joint::rotation2angleaxis(Matrix4f m, float *aa)
 
 void Joint::transform()
 {
-    glTranslatef(p2j_trans[0], p2j_trans[1], p2j_trans[2]);
-    glRotatef(p2j_aa[0], p2j_aa[1], p2j_aa[2], p2j_aa[3]);
+    glTranslated(p2j_trans[0], p2j_trans[1], p2j_trans[2]);
+    glRotated(p2j_aa[0], p2j_aa[1], p2j_aa[2], p2j_aa[3]);
     rotate();
-    glTranslatef(j2c_trans[0], j2c_trans[1], j2c_trans[2]);
-    glRotatef(j2c_aa[0], j2c_aa[1], j2c_aa[2], j2c_aa[3]);
+    glTranslated(j2c_trans[0], j2c_trans[1], j2c_trans[2]);
+    glRotated(j2c_aa[0], j2c_aa[1], j2c_aa[2], j2c_aa[3]);
 }
 
 void Joint::rotate()
@@ -61,7 +61,7 @@ void Joint::rotate()
     cout << "joint rotate" << endl;
 }
 
-Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset,
+Revolute::Revolute(Matrix4d the_parent_offset, Matrix4d the_child_offset,
                    double z_min, double z_max)
 {
     angle_z = 0.0;
@@ -86,10 +86,10 @@ void Revolute::rotate()
     chrono::system_clock::time_point now = chrono::system_clock::now();
     chrono::duration<double> diff = now - start_time;
     angle_z = (joint_limit_z[1] - joint_limit_z[0]) * sin(diff.count()) + joint_limit_z[0];
-    glRotatef(angle_z, 0, 0, 1);
+    glRotated(angle_z, 0, 0, 1);
 }
 
-BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset,
+BallSocket::BallSocket(Matrix4d the_parent_offset, Matrix4d the_child_offset,
                        double z_min, double z_max, double x_min,
                        double x_max)
 {
@@ -122,11 +122,11 @@ void BallSocket::rotate()
     angle_z = (joint_limit_z[1] - joint_limit_z[0]) * sin(diff.count()) + joint_limit_z[0];
     angle_x = (joint_limit_x[1] - joint_limit_x[0]) * sin(diff.count()) + joint_limit_z[1];
     // transform with z axis -> transform with x axis (body frame)
-    glRotatef(angle_z, 0, 0, 1);
-    glRotatef(angle_x, 1, 0, 0);
+    glRotated(angle_z, 0, 0, 1);
+    glRotated(angle_x, 1, 0, 0);
 }
 
-Floating::Floating(Matrix4f the_child_offset)
+Floating::Floating(Matrix4d the_child_offset)
 {
     joint_to_child = the_child_offset;
     rotation2angleaxis(joint_to_child, j2c_aa);

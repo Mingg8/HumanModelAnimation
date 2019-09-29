@@ -55,11 +55,11 @@ class CylinderNode: public Node {
 
 class BoxNode: public Node {
  public:
-    BoxNode(int the_num, float w, float h, float d);
+    BoxNode(int the_num, double w, double h, double d);
     void draw();
     
  private:
-    float height;
-    float depth;
-    float width;
+    double height;
+    double depth;
+    double width;
 };
