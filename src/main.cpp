@@ -10,6 +10,9 @@
     #include <GL/glut.h>
 #endif
 
+// TODO: check double & float
+//        implement tree node
+
 static Camera camera;
 
 static unsigned int width = 700;
@@ -35,6 +38,7 @@ static double head_radius = 0.15;
 static double leg_offset = 0.05+0.15/2;
 static double arm_radius = 0.05;
 static double arm_length = 0.4;
+static double hand_radius = 0.08;
 
 void drawMyHuman(BoxNode *node);
 
@@ -195,6 +199,29 @@ void setUpMyHuman()
     0, 0, 0, 1;
     BallSocket *joint_4_5 = new BallSocket(parent_joint, joint_child, -30.0, 30.0 , -30.0, 30.0);
     body_5->setParent(body_4, joint_4_5);
+    
+    // right hand
+    SphereNode* body_9 = new SphereNode(9, hand_radius);
+    parent_joint << 1, 0, 0, 0,
+    0, 0, -1, 0,
+    0, -1, 0, -hand_radius,
+    0, 0, 0, 1;
+    joint_child << 1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1;
+    BallSocket *joint_8_9 = new BallSocket(parent_joint, joint_child, -30.0, 30.0, -30.0, 30.0);
+    body_9->setParent(body_8, joint_8_9);
+    
+    // left hand
+    SphereNode* body_11 = new SphereNode(11, hand_radius);
+    parent_joint << 1, 0, 0, 0,
+    0, 0, -1, 0,
+    0, 1, 0, -hand_radius,
+    0, 0, 0, 1;
+    BallSocket *joint_10_11 = new BallSocket(parent_joint, joint_child, -30.0, 30.0, -30.0, 30.0);
+    body_11->setParent(body_10, joint_10_11);
+    
 
 }
 
