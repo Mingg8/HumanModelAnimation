@@ -74,39 +74,39 @@ BoxNode::BoxNode(int the_num, float w, float h, float d) {
 void BoxNode::draw() {
     cout << "draw box" << endl;
     glBegin(GL_POLYGON);
-    glVertex3f(-width/2, -height/2, depth/2);
-    glVertex3f(width/2, -height/2, depth/2);
-    glVertex3f(width/2, height/2, depth/2);
-    glVertex3f(-width/2, height/2, depth/2);
+    glVertex3d(-width/2, -height/2, depth/2);
+    glVertex3d(width/2, -height/2, depth/2);
+    glVertex3d(width/2, height/2, depth/2);
+    glVertex3d(-width/2, height/2, depth/2);
     
     glBegin(GL_POLYGON);
-    glVertex3f(-width/2, height/2, depth/2);
-    glVertex3f(width/2, height/2, depth/2);
-    glVertex3f(width/2, height/2, -depth/2);
-    glVertex3f(-width/2, height/2, -depth/2);
+    glVertex3d(-width/2, height/2, depth/2);
+    glVertex3d(width/2, height/2, depth/2);
+    glVertex3d(width/2, height/2, -depth/2);
+    glVertex3d(-width/2, height/2, -depth/2);
     
     glBegin(GL_POLYGON);
-    glVertex3f(-width/2, height/2, -depth/2);
-    glVertex3f(-width/2, height/2, depth/2);
-    glVertex3f(-width/2, -height/2, depth/2);
-    glVertex3f(-width/2, -height/2, -depth/2);
+    glVertex3d(-width/2, height/2, -depth/2);
+    glVertex3d(-width/2, height/2, depth/2);
+    glVertex3d(-width/2, -height/2, depth/2);
+    glVertex3d(-width/2, -height/2, -depth/2);
     
     glBegin(GL_POLYGON);
-    glVertex3f(-width/2, -height/2, -depth/2);
-    glVertex3f(-width/2, height/2, -depth/2);
-    glVertex3f(width/2, height/2, -depth/2);
-    glVertex3f(width/2, -height/2, -depth/2);
+    glVertex3d(-width/2, -height/2, -depth/2);
+    glVertex3d(-width/2, height/2, -depth/2);
+    glVertex3d(width/2, height/2, -depth/2);
+    glVertex3d(width/2, -height/2, -depth/2);
     
     glBegin(GL_POLYGON);
-    glVertex3f(width/2, -height/2, -depth/2);
-    glVertex3f(width/2, height/2, -depth/2);
-    glVertex3f(width/2, height/2, depth/2);
-    glVertex3f(width/2, -height/2, depth/2);
+    glVertex3d(width/2, -height/2, -depth/2);
+    glVertex3d(width/2, height/2, -depth/2);
+    glVertex3d(width/2, height/2, depth/2);
+    glVertex3d(width/2, -height/2, depth/2);
     
     glBegin(GL_POLYGON);
-    glVertex3f(width/2, -height/2, depth/2);
-    glVertex3f(width/2, -height/2, -depth/2);
-    glVertex3f(-width/2, -height/2, -depth/2);
-    glVertex3f(-width/2, -height/2, depth/2);
+    glVertex3d(width/2, -height/2, depth/2);
+    glVertex3d(width/2, -height/2, -depth/2);
+    glVertex3d(-width/2, -height/2, -depth/2);
+    glVertex3d(-width/2, -height/2, depth/2);
     glEnd();
 }

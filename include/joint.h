@@ -1,6 +1,8 @@
 #pragma once
 #include <Eigen/Dense>
 #include <iostream>
+#include <math.h>
+#include <chrono>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -27,6 +29,7 @@ class Joint
     float j2c_trans[3];
     void rotation2angleaxis(Matrix4f, float*);
     virtual void rotate();
+    chrono::system_clock::time_point start_time;
 };
 
 class Revolute: public Joint {

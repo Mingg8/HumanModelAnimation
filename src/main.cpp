@@ -23,19 +23,19 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 
 static bool fullScreen = false;
 
-static float pelvis_radius = 0.15/2;
-static float foot_height = 0.05;
-static float leg_height = 0.5;
-static float leg_radius = 0.15/2;
-static float foot_width = 0.10;
-static float foot_length = 0.25;
-static float upper_body_height = 0.6;
-static float upper_body_depth = 0.15;;
-static float upper_body_width = 0.4;
+static double pelvis_radius = 0.15/2;
+static double foot_height = 0.05;
+static double leg_height = 0.5;
+static double leg_radius = 0.15/2;
+static double foot_width = 0.10;
+static double foot_length = 0.25;
+static double upper_body_height = 0.6;
+static double upper_body_depth = 0.15;;
+static double upper_body_width = 0.4;
 static double head_radius = 0.15;
-static float leg_offset = 0.05+0.15/2;
-static float arm_radius = 0.05;
-static float arm_length = 0.4;
+static double leg_offset = 0.05+0.15/2;
+static double arm_radius = 0.05;
+static double arm_length = 0.4;
 
 void drawMyHuman(BoxNode *node);
 

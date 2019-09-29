@@ -1,6 +1,5 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/joint.h"
-#include <math.h>
 
 
 Joint::Joint(Matrix4f the_parent_offset, Matrix4f the_child_offset)
@@ -15,7 +14,6 @@ Joint::Joint(Matrix4f the_parent_offset, Matrix4f the_child_offset)
         p2j_trans[i] = the_parent_offset(i,3);
         j2c_trans[i] = the_child_offset(i,3);
     }
-    
 }
 
 void Joint::rotation2angleaxis(Matrix4f m, float *aa)
@@ -67,6 +65,7 @@ Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset,
                    double z_min, double z_max)
 {
     angle_z = 0.0;
+    chrono::system_clock::time_point start_time = chrono::system_clock::now();
     parent_to_joint = the_parent_offset;
     joint_to_child = the_child_offset;
 
@@ -84,7 +83,6 @@ Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset,
 
 void Revolute::rotate()
 {
-    cout << "revolute rotate" << endl;
     glRotatef(angle_z, 0, 0, 1);
 }
 
@@ -94,6 +92,8 @@ BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset,
 {
     angle_z = 0.0;
     angle_x = 0.0;
+    
+    chrono::system_clock::time_point start_time = chrono::system_clock::now();
     
     parent_to_joint = the_parent_offset;
     joint_to_child = the_child_offset;
@@ -114,8 +114,11 @@ BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset,
 
 void BallSocket::rotate()
 {
+    chrono::system_clock::time_point now = chrono::system_clock::now();
+    chrono::duration<double> diff = now - start_time;
+    angle_z = (joint_limit_z[1] - joint_limit_z[0]) * sin(diff.count()) + joint_limit_z[0];
+    angle_x = (joint_limit_x[1] - joint_limit_x[0]) * sin(diff.count()) + joint_limit_z[1];
     // transform with z axis -> transform with x axis (body frame)
-    cout << "BallSocket rotate" << endl;
     glRotatef(angle_z, 0, 0, 1);
     glRotatef(angle_x, 1, 0, 0);
 }
