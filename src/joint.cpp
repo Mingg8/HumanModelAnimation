@@ -83,6 +83,9 @@ Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset,
 
 void Revolute::rotate()
 {
+    chrono::system_clock::time_point now = chrono::system_clock::now();
+    chrono::duration<double> diff = now - start_time;
+    angle_z = (joint_limit_z[1] - joint_limit_z[0]) * sin(diff.count()) + joint_limit_z[0];
     glRotatef(angle_z, 0, 0, 1);
 }
 
