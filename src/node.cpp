@@ -35,7 +35,6 @@ Joint* Node::getJoint()
 }
 
 void Node::draw() {
-    cout << "Node draw" <<endl;
 }
 
 SphereNode::SphereNode(int the_num, double r) {
@@ -72,7 +71,6 @@ BoxNode::BoxNode(int the_num, double w, double h, double d) {
 }
 
 void BoxNode::draw() {
-    cout << "draw box" << endl;
     glBegin(GL_POLYGON);
     glVertex3d(-width/2, -height/2, depth/2);
     glVertex3d(width/2, -height/2, depth/2);

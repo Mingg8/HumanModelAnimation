@@ -57,7 +57,7 @@ class BallSocket: public Joint {
 
 class Floating: public Joint {
  public:
-    Floating(Matrix4d);
+    Floating(Matrix4d, Matrix4d);
     void transform();
     
  private:

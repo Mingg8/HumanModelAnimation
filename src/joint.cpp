@@ -58,7 +58,6 @@ void Joint::transform()
 
 void Joint::rotate()
 {
-    cout << "joint rotate" << endl;
 }
 
 Revolute::Revolute(Matrix4d the_parent_offset, Matrix4d the_child_offset,
@@ -126,8 +125,18 @@ void BallSocket::rotate()
     glRotated(angle_x, 1, 0, 0);
 }
 
-Floating::Floating(Matrix4d the_child_offset)
+Floating::Floating(Matrix4d the_parent_offset, Matrix4d the_child_offset)
 {
     joint_to_child = the_child_offset;
     rotation2angleaxis(joint_to_child, j2c_aa);
+    
+    p2j_aa[0] = 0;
+    p2j_aa[1] = 0;
+    p2j_aa[2] = 0;
+    p2j_aa[3] = 1.0;
+    
+    for (size_t i=0; i<3; i++) {
+        p2j_trans[i] = the_parent_offset(i,3);
+        j2c_trans[i] = the_child_offset(i,3);
+    }
 }
