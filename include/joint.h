@@ -1,8 +1,6 @@
-// Joint header
-#ifndef Joint_H
-#define Joint_H
-
+#pragma once
 #include <Eigen/Dense>
+#include <iostream>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -28,24 +26,36 @@ class Joint
     float p2j_trans[3];
     float j2c_trans[3];
     void rotation2angleaxis(Matrix4f, float*);
+    virtual void rotate();
 };
 
 class Revolute: public Joint {
  public:
     Revolute(Matrix4f, Matrix4f);
+    void transform();
+    
  private:
+    double joint_limit_z[2];
     float angle_z;
+    void rotate();
 };
 
 class BallSocket: public Joint {
  public:
     BallSocket(Matrix4f, Matrix4f);
  private:
+    double joint_limit_z[2];
+    double joint_limit_x[2];
+    float angle_z;
+    float angle_x;
+    void rotate();
 };
 
 class Floating: public Joint {
  public:
     Floating(Matrix4f);
+    void transform();
+    
  private:
     float x;
     float y;
@@ -54,4 +64,3 @@ class Floating: public Joint {
     float angle_y;
     float angle_z;
 };
-#endif

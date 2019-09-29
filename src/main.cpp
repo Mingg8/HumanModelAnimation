@@ -29,17 +29,17 @@ static float leg_height = 0.5;
 static float leg_radius = 0.15/2;
 static float foot_width = 0.10;
 static float foot_length = 0.25;
-static float upper_body_height = 0.5;
+static float upper_body_height = 0.6;
 static float upper_body_depth = 0.15;;
 static float upper_body_width = 0.4;
-static float head_radius = 0.1;
+static float head_radius = 0.15;
 static float leg_offset = 0.05+0.15/2;
 static float arm_radius = 0.05;
 static float arm_length = 0.4;
 
 void drawMyHuman(BoxNode *node);
 
-TreeNode* body_root = new TreeNode(0);
+Node* body_root = new Node(0);
 
 
 void reshape(int w, int h)
@@ -66,10 +66,10 @@ void setUpMyHuman()
     Eigen::Matrix4f parent_joint, joint_child;
     parent_joint << 1, 0, 0, 0,
                     0, 1, 0, 0,
-                    0, 0, 1, leg_offset,
+                    0, 0, 1, (leg_offset+upper_body_width/2),
                     0, 0, 0, 1;
     joint_child << 1, 0, 0, 0,
-                    0, 0, 1, -(leg_height/2+pelvis_radius),
+                    0, 0, 1, -(leg_height+pelvis_radius),
                     0, -1, 0, 0,
                     0, 0, 0, 1;
     BallSocket* joint_12 = new BallSocket(parent_joint, joint_child);
@@ -77,7 +77,7 @@ void setUpMyHuman()
 
     // left upper leg
     CylinderNode* body_3 = new CylinderNode(3, leg_radius, leg_height);
-    parent_joint(2, 3) = -leg_offset;
+    parent_joint(2, 3) = upper_body_width/2-leg_offset;
     BallSocket* joint_13 = new BallSocket(parent_joint, joint_child);
     body_3->setParent(body_1, joint_13);
 
@@ -85,10 +85,10 @@ void setUpMyHuman()
     CylinderNode* body_12 = new CylinderNode(12, leg_radius, leg_height);
     parent_joint << 1, 0, 0, 0,
                    0, 0, -1, 0,
-                   0, 1, 0, -leg_height/2,
+                   0, 1, 0, 0,
                    0, 0, 0, 1;
     joint_child << 1, 0, 0, 0,
-                0, 0, 1, -leg_height/2,
+                0, 0, 1, -leg_height,
                 0, -1, 0, 0,
                 0, 0, 0, 1;
     Revolute* joint_2_12 = new Revolute(parent_joint, joint_child);
@@ -103,7 +103,7 @@ void setUpMyHuman()
     BoxNode* body_13 = new BoxNode(13, foot_width, foot_height, foot_length);
     parent_joint << 1, 0, 0, 0,
                     0, 0, -1, 0,
-                    0, 1, 0, -leg_height/2,
+                    0, 1, 0, 0,
                     0, 0, 0, 1;
     joint_child << 0, 0, 1, foot_length/2,
                     0, 1, 0, 0,
@@ -121,7 +121,7 @@ void setUpMyHuman()
     BoxNode* body_4 = new BoxNode(4, upper_body_width, upper_body_height, upper_body_depth);
     parent_joint << 0, 1, 0, 0,
                     1, 0, 0, 0,
-                    0, 0, -1, 0,
+                    0, 0, -1, upper_body_width/2,
                     0, 0, 0, 1;
     joint_child << 0, 1, 0, upper_body_height/2,
                     0, 0, 1, 0,
@@ -132,11 +132,11 @@ void setUpMyHuman()
     
     // right arm
     CylinderNode* body_6 = new CylinderNode(6, arm_radius, arm_length);
-    parent_joint << 0, -1, 0, -upper_body_width/2,
+    parent_joint << 0, -1, 0, -(upper_body_width/2+arm_radius),
                     1, 0, 0, upper_body_height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1;
-    joint_child << 0, 0, 1, -arm_length/2,
+    joint_child << 0, 0, 1, -arm_length,
                     0, -1, 0, 0,
                     1, 0, 0, 0,
                     0, 0, 0, 1;
@@ -145,11 +145,11 @@ void setUpMyHuman()
     
     // left arm
     CylinderNode* body_7 = new CylinderNode(7, arm_radius, arm_length);
-    parent_joint << 0, 1, 0, upper_body_width/2,
+    parent_joint << 0, 1, 0, (upper_body_width/2+arm_radius),
                     -1, 0, 0, upper_body_height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1;
-    joint_child << 0, 0, -1, arm_length/2,
+    joint_child << 0, 0, -1, arm_length,
                     0, 1, 0, 0,
                     1, 0, 0, 0,
                     0, 0, 0, 1;
@@ -160,10 +160,10 @@ void setUpMyHuman()
     CylinderNode* body_8 = new CylinderNode(8, arm_radius, arm_length);
     parent_joint << 1, 0, 0, 0,
                     0, 0, -1, 0,
-                    0, 1, 0, -arm_length/2,
+                    0, 1, 0, 0,
                     0, 0, 0, 1;
     joint_child << 1, 0, 0, 0,
-                    0, 0, 1, -arm_length/2,
+                    0, 0, 1, -arm_length,
                     0, -1, 0, 0,
                     0, 0, 0, 1;
     Revolute *joint_6_8 = new Revolute(parent_joint, joint_child);
@@ -173,29 +173,39 @@ void setUpMyHuman()
     CylinderNode* body_10 = new CylinderNode(10, arm_radius, arm_length);
     parent_joint << 0, 1, 0, 0,
                     0, 0, 1, 0,
-                    1, 0, 0, -arm_length/2,
+                    1, 0, 0, 0,
                     0, 0, 0, 1;
-    joint_child << 0, 0, 1, -arm_length/2,
+    joint_child << 0, 0, 1, -arm_length,
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 0, 1;
     Revolute *joint_7_10 = new Revolute(parent_joint, joint_child);
     body_10->setParent(body_7, joint_7_10);
     
+    // head
+    SphereNode* body_5 = new SphereNode(5, head_radius);
+    parent_joint << 1, 0, 0, 0,
+    0, 1, 0, upper_body_height/2,
+    0, 0, 1, 0,
+    0, 0, 0, 1;
+    joint_child << 0, 1, 0, 0,
+    0, 0, 1, head_radius,
+    1, 0, 0, 0,
+    0, 0, 0, 1;
+    BallSocket *joint_4_5 = new BallSocket(parent_joint, joint_child);
+    body_5->setParent(body_4, joint_4_5);
+    
 }
 
-void drawMyHuman(TreeNode *node)
+void drawMyHuman(Node *node)
 {
     node->draw();
-    vector<TreeNode*> children_vec = node->getChildren();
+    vector<Node*> children_vec = node->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i]->getJoint();
         glPushMatrix();
         j->transform();
-        
-
         drawMyHuman(children_vec[i]);
-        
         glPopMatrix();
     }
 }
@@ -204,6 +214,7 @@ void display()
 {
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glColor3f(0.2, 0.45, 0.6);
 	camera.apply();
     glPushMatrix();
     drawMyHuman(body_root);

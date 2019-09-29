@@ -2,6 +2,7 @@
 #include "../include/joint.h"
 #include <math.h>
 
+
 Joint::Joint(Matrix4f the_parent_offset, Matrix4f the_child_offset)
 {
     parent_to_joint = the_parent_offset;
@@ -51,13 +52,19 @@ void Joint::transform()
 {
     glTranslatef(p2j_trans[0], p2j_trans[1], p2j_trans[2]);
     glRotatef(p2j_aa[0], p2j_aa[1], p2j_aa[2], p2j_aa[3]);
-//    rotate(node);
+    rotate();
     glTranslatef(j2c_trans[0], j2c_trans[1], j2c_trans[2]);
     glRotatef(j2c_aa[0], j2c_aa[1], j2c_aa[2], j2c_aa[3]);
 }
 
+void Joint::rotate()
+{
+    cout << "joint rotate" << endl;
+}
+
 Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset)
 {
+    angle_z = 0.0;
     parent_to_joint = the_parent_offset;
     joint_to_child = the_child_offset;
 
@@ -71,8 +78,17 @@ Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset)
     }
 }
 
+void Revolute::rotate()
+{
+    cout << "revolute rotate" << endl;
+    glRotatef(angle_z, 0, 0, 1);
+}
+
 BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset)
 {
+    angle_z = 0.0;
+    angle_x = 0.0;
+    
     parent_to_joint = the_parent_offset;
     joint_to_child = the_child_offset;
 
@@ -83,6 +99,14 @@ BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset)
         p2j_trans[i] = the_parent_offset(i,3);
         j2c_trans[i] = the_child_offset(i,3);
     }
+}
+
+void BallSocket::rotate()
+{
+    // transform with z axis -> transform with x axis (body frame)
+    cout << "BallSocket rotate" << endl;
+    glRotatef(angle_z, 0, 0, 1);
+    glRotatef(angle_x, 1, 0, 0);
 }
 
 Floating::Floating(Matrix4f the_child_offset)

@@ -1,6 +1,3 @@
-// Node header
-#ifndef TreeNode_H
-#define TreeNode_H
 #include <iostream>
 #include <vector>
 #include "joint.h"
@@ -11,19 +8,19 @@
 #include <GL/glut.h>
 #endif
 
-#define M_PI 3.141592
+//#define M_PI 3.141592
 
 using namespace std;
 
-class TreeNode
+class Node
 {
  public:
-    TreeNode() {};
-    TreeNode(int the_num);
-    void setParent(TreeNode *parent, Joint *joint);
-    void addToChildren(TreeNode *child);
+    Node() {};
+    Node(int the_num);
+    void setParent(Node *parent, Joint *joint);
+    void addToChildren(Node *child);
     
-    vector<TreeNode *> getChildren();
+    vector<Node *> getChildren();
     int getId();
     Joint* getJoint();
     
@@ -31,32 +28,32 @@ class TreeNode
     
 
  private:
-    TreeNode *parent;
+    Node *parent;
     Joint *joint;
-    std::vector<TreeNode *> children;
+    std::vector<Node *> children;
  protected:
     int num;
 };
 
-class SphereNode: public TreeNode {
+class SphereNode: public Node {
  public:
-    SphereNode(int the_num, float r);
+    SphereNode(int the_num, double r);
     void draw();
  private:
-    float radius;
+    double radius;
 };
 
-class CylinderNode: public TreeNode {
+class CylinderNode: public Node {
  public:
-    CylinderNode(int the_num, float r, float l);
+    CylinderNode(int the_num, double r, double l);
     void draw();
     
  private:
-    float radius;
-    float length;
+    double radius;
+    double length;
 };
 
-class BoxNode: public TreeNode {
+class BoxNode: public Node {
  public:
     BoxNode(int the_num, float w, float h, float d);
     void draw();
@@ -66,5 +63,3 @@ class BoxNode: public TreeNode {
     float depth;
     float width;
 };
-
-#endif

@@ -1,54 +1,56 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/node.h"
 
-TreeNode::TreeNode(int _num)
+Node::Node(int _num)
 {
     num = _num;
     parent = NULL;
 }
 
-void TreeNode::setParent(TreeNode *the_parent, Joint *the_joint)
+void Node::setParent(Node *the_parent, Joint *the_joint)
 {
     parent = the_parent;
     joint = the_joint;
     parent->addToChildren(this);
 }
 
-void TreeNode::addToChildren(TreeNode *child)
+void Node::addToChildren(Node *child)
 {
     children.push_back(child);
 }
 
-vector<TreeNode *> TreeNode::getChildren()
+vector<Node *> Node::getChildren()
 {
     return children;
 }
 
-int TreeNode::getId()
+int Node::getId()
 {
     return num;
 }
 
-Joint* TreeNode::getJoint()
+Joint* Node::getJoint()
 {
     return joint;
 }
 
-void TreeNode::draw() {
+void Node::draw() {
+    cout << "Node draw" <<endl;
 }
 
-SphereNode::SphereNode(int the_num, float r) {
+SphereNode::SphereNode(int the_num, double r) {
     num = the_num;
     radius = r;
 }
 
 void SphereNode::draw() {
+    
     GLUquadric *sphere;
     sphere = gluNewQuadric();
     gluSphere(sphere, radius, 50, 10);
 }
 
-CylinderNode::CylinderNode(int the_num, float r, float l) {
+CylinderNode::CylinderNode(int the_num, double r, double l) {
     num = the_num;
     radius = r;
     length = l;
@@ -56,33 +58,9 @@ CylinderNode::CylinderNode(int the_num, float r, float l) {
 }
 
 void CylinderNode::draw() {
-    cout << "draw cylinder" << endl;
-    int slices = 100;
-//    for (size_t i = 0; i < slices; i++) {
-//        float theta = ((float)i)*2.0*M_PI;
-//        float nextTheta = ((float)i+1)*2.0*M_PI;
-    
-////        glBegin(GL_TRIANGLE_STRIP);
-//        glColor3f(1.0, 0.3, 0.2);
-////        glVertex3f(0.0, length/2, 0.0);
-////        glVertex3f(radius*cos(theta), length/2, radius*sin(theta));
-////        glVertex3f(radius*cos(nextTheta), length/2, radius*sin(nextTheta));
-////
-////        glVertex3f(radius*cos(nextTheta), -length/2, radius*sin(nextTheta));
-////        glVertex3f(radius*cos(theta), -length/2, radius*sin(theta));
-////        glVertex3f(0.0, -length/2, 0.0);
-////        glEnd();
-//        GLUquadricObj *IDquadric;
-//
-//        gluCylinder(IDquadric,10.0f,10.0f,10.0f,32,32);
-//    }
-    glColor3f(1.0, 0.3, 0.2);
-    glBegin(GL_POLYGON);
-    glVertex3f(0, -radius, -length/2);
-    glVertex3f(0, radius, -length/2);
-    glVertex3f(0, radius, length/2);
-    glVertex3f(0, -radius, length/2);
-    glEnd();
+    GLUquadricObj *quadratic;
+    quadratic = gluNewQuadric();
+    gluCylinder(quadratic, radius, radius, length, 32, 32);
     
 }
 
@@ -96,7 +74,6 @@ BoxNode::BoxNode(int the_num, float w, float h, float d) {
 void BoxNode::draw() {
     cout << "draw box" << endl;
     glBegin(GL_POLYGON);
-    glColor3f(0.2, 0.45, 0.6);
     glVertex3f(-width/2, -height/2, depth/2);
     glVertex3f(width/2, -height/2, depth/2);
     glVertex3f(width/2, height/2, depth/2);
