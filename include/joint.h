@@ -31,7 +31,7 @@ class Joint
 
 class Revolute: public Joint {
  public:
-    Revolute(Matrix4f, Matrix4f);
+    Revolute(Matrix4f, Matrix4f, double, double);
     void transform();
     
  private:
@@ -42,7 +42,8 @@ class Revolute: public Joint {
 
 class BallSocket: public Joint {
  public:
-    BallSocket(Matrix4f, Matrix4f);
+    BallSocket(Matrix4f, Matrix4f, double, double,
+               double, double);
  private:
     double joint_limit_z[2];
     double joint_limit_x[2];

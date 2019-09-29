@@ -32,7 +32,7 @@ static float foot_length = 0.25;
 static float upper_body_height = 0.6;
 static float upper_body_depth = 0.15;;
 static float upper_body_width = 0.4;
-static float head_radius = 0.15;
+static double head_radius = 0.15;
 static float leg_offset = 0.05+0.15/2;
 static float arm_radius = 0.05;
 static float arm_length = 0.4;
@@ -72,13 +72,15 @@ void setUpMyHuman()
                     0, 0, 1, -(leg_height+pelvis_radius),
                     0, -1, 0, 0,
                     0, 0, 0, 1;
-    BallSocket* joint_12 = new BallSocket(parent_joint, joint_child);
+    BallSocket* joint_12 = new BallSocket(parent_joint, joint_child,
+                                          0.0, 150.0, -90.0, 0.0);
     body_2->setParent(body_1, joint_12);
 
     // left upper leg
     CylinderNode* body_3 = new CylinderNode(3, leg_radius, leg_height);
     parent_joint(2, 3) = upper_body_width/2-leg_offset;
-    BallSocket* joint_13 = new BallSocket(parent_joint, joint_child);
+    BallSocket* joint_13 = new BallSocket(parent_joint, joint_child,
+                                          0.0, 150.0, 0.0, 90.0);
     body_3->setParent(body_1, joint_13);
 
     // right lower leg
@@ -91,12 +93,12 @@ void setUpMyHuman()
                 0, 0, 1, -leg_height,
                 0, -1, 0, 0,
                 0, 0, 0, 1;
-    Revolute* joint_2_12 = new Revolute(parent_joint, joint_child);
+    Revolute* joint_2_12 = new Revolute(parent_joint, joint_child, -150.0, 0.0);
     body_12->setParent(body_2, joint_2_12);
 
     // left lower leg
     CylinderNode* body_14 = new CylinderNode(14, leg_radius, leg_height);
-    Revolute* joint_3_14 = new Revolute(parent_joint, joint_child);
+    Revolute* joint_3_14 = new Revolute(parent_joint, joint_child, -150.0, 0.0);
     body_14->setParent(body_3, joint_3_14);
     
     // right foot
@@ -109,12 +111,12 @@ void setUpMyHuman()
                     0, 1, 0, 0,
                     -1, 0, 0, 0,
                     0, 0, 0, 2;
-    Revolute* joint_12_13 = new Revolute(parent_joint, joint_child);
+    Revolute* joint_12_13 = new Revolute(parent_joint, joint_child, -30.0, 30.0);
     body_13->setParent(body_12, joint_12_13);
     
     // left foot
     BoxNode* body_15 = new BoxNode(15, foot_width, foot_height, foot_length);
-    Revolute* joint_14_15 = new Revolute(parent_joint, joint_child);
+    Revolute* joint_14_15 = new Revolute(parent_joint, joint_child, -30.0, 30.0);
     body_15->setParent(body_14, joint_14_15);
     
     // body
@@ -127,35 +129,35 @@ void setUpMyHuman()
                     0, 0, 1, 0,
                     1, 0, 0, 0,
                     0, 0, 0, 1;
-    Revolute* joint_1_4 = new Revolute(parent_joint, joint_child);
+    Revolute* joint_1_4 = new Revolute(parent_joint, joint_child, -30.0, 0.0);
     body_4->setParent(body_1, joint_1_4);
     
     // right arm
     CylinderNode* body_6 = new CylinderNode(6, arm_radius, arm_length);
-    parent_joint << 0, -1, 0, -(upper_body_width/2+arm_radius),
-                    1, 0, 0, upper_body_height/2,
+    parent_joint << -1, 0, 0, -(upper_body_width/2+arm_radius),
+                    0, -1, 0, upper_body_height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1;
-    joint_child << 0, 0, 1, -arm_length,
-                    0, -1, 0, 0,
+    joint_child << 0, -1, 0, 0,
+                    0, 0, -1, arm_length,
                     1, 0, 0, 0,
                     0, 0, 0, 1;
-    BallSocket* joint_4_6 = new BallSocket(parent_joint, joint_child);
+    BallSocket* joint_4_6 = new BallSocket(parent_joint, joint_child, -180.0, 180.0, -180.0, 180.0);
     body_6->setParent(body_4, joint_4_6);
     
     // left arm
     CylinderNode* body_7 = new CylinderNode(7, arm_radius, arm_length);
-    parent_joint << 0, 1, 0, (upper_body_width/2+arm_radius),
-                    -1, 0, 0, upper_body_height/2,
+    parent_joint << 1, 0, 0, (upper_body_width/2+arm_radius),
+                    0, 1, 0, upper_body_height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1;
-    joint_child << 0, 0, -1, arm_length,
-                    0, 1, 0, 0,
+    joint_child << 0, 1, 0, 0,
+                    0, 0, 1, -arm_length,
                     1, 0, 0, 0,
                     0, 0, 0, 1;
-    BallSocket* joint_4_7 = new BallSocket(parent_joint, joint_child);
+    BallSocket* joint_4_7 = new BallSocket(parent_joint, joint_child, -180.0, 180.0, -180.0, 180.0);
     body_7->setParent(body_4, joint_4_7);
-    
+
     // right lower arm
     CylinderNode* body_8 = new CylinderNode(8, arm_radius, arm_length);
     parent_joint << 1, 0, 0, 0,
@@ -166,7 +168,7 @@ void setUpMyHuman()
                     0, 0, 1, -arm_length,
                     0, -1, 0, 0,
                     0, 0, 0, 1;
-    Revolute *joint_6_8 = new Revolute(parent_joint, joint_child);
+    Revolute *joint_6_8 = new Revolute(parent_joint, joint_child, 0.0, 170.0);
     body_8->setParent(body_6, joint_6_8);
 
     // left lower arm
@@ -179,22 +181,22 @@ void setUpMyHuman()
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 0, 1;
-    Revolute *joint_7_10 = new Revolute(parent_joint, joint_child);
+    Revolute *joint_7_10 = new Revolute(parent_joint, joint_child, 170.0, 0.0);
     body_10->setParent(body_7, joint_7_10);
-    
+
     // head
     SphereNode* body_5 = new SphereNode(5, head_radius);
     parent_joint << 1, 0, 0, 0,
-    0, 1, 0, upper_body_height/2,
-    0, 0, 1, 0,
+    0, 0, 1, upper_body_height/2,
+    0, -1, 0, 0,
     0, 0, 0, 1;
     joint_child << 0, 1, 0, 0,
+    -1, 0, 0, 0,
     0, 0, 1, head_radius,
-    1, 0, 0, 0,
     0, 0, 0, 1;
-    BallSocket *joint_4_5 = new BallSocket(parent_joint, joint_child);
+    BallSocket *joint_4_5 = new BallSocket(parent_joint, joint_child, -90.0, 90.0, -90.0, 30.0);
     body_5->setParent(body_4, joint_4_5);
-    
+
 }
 
 void drawMyHuman(Node *node)

@@ -15,6 +15,7 @@ Joint::Joint(Matrix4f the_parent_offset, Matrix4f the_child_offset)
         p2j_trans[i] = the_parent_offset(i,3);
         j2c_trans[i] = the_child_offset(i,3);
     }
+    
 }
 
 void Joint::rotation2angleaxis(Matrix4f m, float *aa)
@@ -62,7 +63,8 @@ void Joint::rotate()
     cout << "joint rotate" << endl;
 }
 
-Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset)
+Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset,
+                   double z_min, double z_max)
 {
     angle_z = 0.0;
     parent_to_joint = the_parent_offset;
@@ -76,6 +78,8 @@ Revolute::Revolute(Matrix4f the_parent_offset, Matrix4f the_child_offset)
         p2j_trans[i] = the_parent_offset(i,3);
         j2c_trans[i] = the_child_offset(i,3);
     }
+    joint_limit_z[0] = z_min;
+    joint_limit_z[1] = z_max;
 }
 
 void Revolute::rotate()
@@ -84,7 +88,9 @@ void Revolute::rotate()
     glRotatef(angle_z, 0, 0, 1);
 }
 
-BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset)
+BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset,
+                       double z_min, double z_max, double x_min,
+                       double x_max)
 {
     angle_z = 0.0;
     angle_x = 0.0;
@@ -99,6 +105,11 @@ BallSocket::BallSocket(Matrix4f the_parent_offset, Matrix4f the_child_offset)
         p2j_trans[i] = the_parent_offset(i,3);
         j2c_trans[i] = the_child_offset(i,3);
     }
+    
+    joint_limit_x[0] = x_min;
+    joint_limit_x[1] = x_max;
+    joint_limit_z[0] = z_min;
+    joint_limit_z[1] = z_max;
 }
 
 void BallSocket::rotate()
