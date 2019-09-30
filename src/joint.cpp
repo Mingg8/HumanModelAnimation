@@ -89,10 +89,11 @@ void Revolute::rotate()
 }
 
 BallSocket::BallSocket(Matrix4d the_parent_offset, Matrix4d the_child_offset,
-                       double z_min, double z_max, double x_min,
-                       double x_max)
+                       double z_min, double z_max, double y_min, double y_max,
+                       double x_min, double x_max)
 {
     angle_z = 0.0;
+    angle_y = 0.0;
     angle_x = 0.0;
     
     chrono::system_clock::time_point start_time = chrono::system_clock::now();
@@ -110,6 +111,8 @@ BallSocket::BallSocket(Matrix4d the_parent_offset, Matrix4d the_child_offset,
     
     joint_limit_x[0] = x_min;
     joint_limit_x[1] = x_max;
+    joint_limit_y[0] = y_min;
+    joint_limit_y[1] = y_max;
     joint_limit_z[0] = z_min;
     joint_limit_z[1] = z_max;
 }
@@ -119,9 +122,11 @@ void BallSocket::rotate()
     chrono::system_clock::time_point now = chrono::system_clock::now();
     chrono::duration<double> diff = now - start_time;
     angle_z = (joint_limit_z[1] - joint_limit_z[0]) * sin(diff.count()) + joint_limit_z[0];
-    angle_x = (joint_limit_x[1] - joint_limit_x[0]) * sin(diff.count()) + joint_limit_z[1];
+    angle_x = (joint_limit_x[1] - joint_limit_x[0]) * sin(diff.count()) + joint_limit_x[1];
+    angle_y = (joint_limit_y[1] - joint_limit_y[0]) * sin(diff.count()) + joint_limit_y[1];
     // transform with z axis -> transform with x axis (body frame)
     glRotated(angle_z, 0, 0, 1);
+    glRotated(angle_y, 0, 1, 0);
     glRotated(angle_x, 1, 0, 0);
 }
 

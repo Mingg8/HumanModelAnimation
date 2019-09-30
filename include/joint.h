@@ -46,11 +46,13 @@ class Revolute: public Joint {
 class BallSocket: public Joint {
  public:
     BallSocket(Matrix4d, Matrix4d, double, double,
-               double, double);
+               double, double, double, double);
  private:
     double joint_limit_z[2];
     double joint_limit_x[2];
+    double joint_limit_y[2];
     double angle_z;
+    double angle_y;
     double angle_x;
     void rotate();
 };
