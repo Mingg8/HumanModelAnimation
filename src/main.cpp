@@ -2,6 +2,7 @@
 
 #include "../include/camera.h"
 #include "../include/tree.h"
+#include "../include/bvh.h"
 #include <iostream>
 #include <memory>
 #ifdef __APPLE__

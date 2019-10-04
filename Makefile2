@@ -1,9 +1,11 @@
+OPTION = -I /usr/local/include/eigen3
 LIBS = -framework OpenGL -framework GLUT
+OBJS = bvh.o camera.o node.o joint.o tree.o
 
 all : main.o camera.o node.o joint.o tree.o bvh.o
-	g++ -std=c++11 -I /usr/local/include/eigen3/ main.o camera.o node.o joint.o tree.o bvh.o $(LIBS) -o main
+	g++ -std=c++11 $(OPTION) $(OBJS) $(LIBS) -o main
 
-main.o : src/main.cpp include/camera.h
+main : $(OBJS)
 	g++ -std=c++11 -I /usr/local/include/eigen3/ -c -g src/main.cpp $(LIBS) -o main.o
 
 bvh.o : include/bvh.h
