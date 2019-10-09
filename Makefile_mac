@@ -1,13 +1,10 @@
 LIBS = -framework OpenGL -framework GLUT
 
-all : main.o camera.o node.o joint.o tree.o bvh.o
-	g++ -std=c++11 -I /usr/local/include/eigen3/ main.o camera.o node.o joint.o tree.o bvh.o $(LIBS) -o main
+all : main.o camera.o node.o joint.o tree.o
+	g++ -std=c++11 -I /usr/local/include/eigen3/ main.o camera.o node.o joint.o tree.o $(LIBS) -o main
 
 main.o : src/main.cpp include/camera.h
 	g++ -std=c++11 -I /usr/local/include/eigen3/ -c -g src/main.cpp $(LIBS) -o main.o
-
-bvh.o : include/bvh.h
-    g++ -std=c++11 -I /usr/local/include/eigen3/ include/bvh_struct.h -c -g src/bvh.cpp $(LIBS) -o bvh.o
 
 camera.o : include/camera.h
 	g++ -std=c++11 -I /usr/local/include/eigen3/ -c -g src/camera.cpp $(LIBS) -o camera.o

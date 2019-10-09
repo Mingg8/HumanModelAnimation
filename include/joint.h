@@ -13,12 +13,26 @@
 using namespace std;
 using namespace Eigen;
 
+typedef struct
+{
+    double x, y, z;
+} OFFSET;
+
 class Joint
 {
  public:
     Joint() {};
     Joint(Matrix4d, Matrix4d);
     void transform();
+    void setJoint(double x, double y, double z);
+    
+    
+    Matrix4d parent_to_child;
+    int channel_start;
+    const char* joint_name = NULL;
+    int num_channels;
+    short* channels_order = NULL;
+    OFFSET offset;
     
  protected:
     Matrix4d parent_to_joint;
@@ -30,6 +44,7 @@ class Joint
     void rotation2angleaxis(Matrix4d, double*);
     virtual void rotate();
     chrono::system_clock::time_point start_time;
+    
 };
 
 class Revolute: public Joint {
