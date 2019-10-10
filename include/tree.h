@@ -1,6 +1,5 @@
 #pragma once
 
-#include "node.h"
 #include "joint.h"
 #include <Eigen/Dense>
 #include <string>
@@ -43,18 +42,18 @@ typedef struct
 {
     unsigned int num_frames;              // number of frames
     unsigned int num_motion_channels = 0; // number of motion channels
-    float* data = NULL;                   // motion float data array
+    float* data = nullptr;                   // motion float data array
     unsigned* joint_channel_offsets;      // number of channels from beggining of hierarchy for i-th joint
 } MOTION;
 
 
 class Tree {
   public:
-    Tree();
-    Node* getRoot();
+    Tree(const string& filename);
+    Joint* getRoot();
     void setUpMyHuman();
     void setUpMyHuman2();
-    void drawMyHuman(Node*);
+    void drawMyHuman(Joint*, bool);
     void load(const std::string& filename);
     
 
@@ -76,12 +75,12 @@ class Tree {
     double hand_radius = 0.08;
     double pelvis_offset = 0.08;
     
-    void loadJoint(std::istream& stream, Node* parent, Joint* joint);
+    void loadJoint(std::istream& stream, Joint* parent, Joint* joint);
     void loadMotion(std::istream& stream);
     void loadHierarchy(std::istream& stream);
     MOTION motionData;
 
-    Node* body_root;
+    Joint* root_joint;
     int body_num = 0;
-    double default_size = 0.5;
+    double default_size = 3;
 };

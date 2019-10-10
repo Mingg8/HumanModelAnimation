@@ -4,34 +4,11 @@
 Node::Node(int _num)
 {
     num = _num;
-    parent = NULL;
-}
-
-void Node::setParent(Node *the_parent, Joint *the_joint)
-{
-    parent = the_parent;
-    joint = the_joint;
-    parent->addToChildren(this);
-}
-
-void Node::addToChildren(Node *child)
-{
-    children.push_back(child);
-}
-
-vector<Node *> Node::getChildren()
-{
-    return children;
 }
 
 int Node::getId()
 {
     return num;
-}
-
-Joint* Node::getJoint()
-{
-    return joint;
 }
 
 void Node::draw() {
@@ -63,48 +40,53 @@ void CylinderNode::draw() {
     
 }
 
-BoxNode::BoxNode(int the_num, double w, double h, double d) {
+BoxNode::BoxNode(int the_num, double _minX, double _maxX, double _minY,
+    double _maxY, double _minZ, double _maxZ) {
+    minX = _minX;
+    maxX = _maxX;
+    minY = _minY;
+    maxY = _maxY;
+    minZ = _minZ;
+    maxZ = _maxZ;
+    
     num = the_num;
-    width = w;
-    height = h;
-    depth = d;
 }
 
 void BoxNode::draw() {
     glBegin(GL_POLYGON);
-    glVertex3d(-width/2, -height/2, depth/2);
-    glVertex3d(width/2, -height/2, depth/2);
-    glVertex3d(width/2, height/2, depth/2);
-    glVertex3d(-width/2, height/2, depth/2);
+    glVertex3d(minX, minY, maxZ);
+    glVertex3d(maxX, minY, maxZ);
+    glVertex3d(maxX, maxY, maxZ);
+    glVertex3d(minX, maxY, maxZ);
     
     glBegin(GL_POLYGON);
-    glVertex3d(-width/2, height/2, depth/2);
-    glVertex3d(width/2, height/2, depth/2);
-    glVertex3d(width/2, height/2, -depth/2);
-    glVertex3d(-width/2, height/2, -depth/2);
+    glVertex3d(minX, maxY, maxZ);
+    glVertex3d(maxX, maxY, maxZ);
+    glVertex3d(maxX, maxY, minZ);
+    glVertex3d(minX, maxY, minZ);
     
     glBegin(GL_POLYGON);
-    glVertex3d(-width/2, height/2, -depth/2);
-    glVertex3d(-width/2, height/2, depth/2);
-    glVertex3d(-width/2, -height/2, depth/2);
-    glVertex3d(-width/2, -height/2, -depth/2);
+    glVertex3d(minX, maxY, minZ);
+    glVertex3d(minX, maxY, maxZ);
+    glVertex3d(minX, minY, maxZ);
+    glVertex3d(minX, minY, minZ);
     
     glBegin(GL_POLYGON);
-    glVertex3d(-width/2, -height/2, -depth/2);
-    glVertex3d(-width/2, height/2, -depth/2);
-    glVertex3d(width/2, height/2, -depth/2);
-    glVertex3d(width/2, -height/2, -depth/2);
+    glVertex3d(minX, minY, minZ);
+    glVertex3d(minX, maxY, minZ);
+    glVertex3d(maxX, maxY, minZ);
+    glVertex3d(maxX, minY, minZ);
     
     glBegin(GL_POLYGON);
-    glVertex3d(width/2, -height/2, -depth/2);
-    glVertex3d(width/2, height/2, -depth/2);
-    glVertex3d(width/2, height/2, depth/2);
-    glVertex3d(width/2, -height/2, depth/2);
+    glVertex3d(maxX, minY, minZ);
+    glVertex3d(maxX, maxY, minZ);
+    glVertex3d(maxX, maxY, maxZ);
+    glVertex3d(maxX, minY, maxZ);
     
     glBegin(GL_POLYGON);
-    glVertex3d(width/2, -height/2, depth/2);
-    glVertex3d(width/2, -height/2, -depth/2);
-    glVertex3d(-width/2, -height/2, -depth/2);
-    glVertex3d(-width/2, -height/2, depth/2);
+    glVertex3d(maxX, minY, maxZ);
+    glVertex3d(maxX, minY, minZ);
+    glVertex3d(minX, minY, minZ);
+    glVertex3d(minX, minY, maxZ);
     glEnd();
 }

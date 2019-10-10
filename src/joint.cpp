@@ -16,6 +16,24 @@ Joint::Joint(Matrix4d the_parent_offset, Matrix4d the_child_offset)
     }
 }
 
+void Joint::setParent(Joint *the_parent) {
+    parent = the_parent;
+    parent->addToChildren(this);
+}
+
+void Joint::setNode(Node *the_node) {
+    node = the_node;
+}
+
+Node* Joint::getNode() {return node;}
+
+void Joint::addToChildren(Joint* child) {
+    children.push_back(child);
+    cout << "add children" << endl;
+}
+
+vector<Joint*> Joint::getChildren() {return children;}
+
 void Joint::rotation2angleaxis(Matrix4d m, double *aa)
 {
     double cos_theta = (m(0,0) + m(1,1) + m(2,2) - 1) /2;

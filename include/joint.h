@@ -4,6 +4,8 @@
 #include <math.h>
 #include <chrono>
 
+#include "node.h"
+
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -24,14 +26,19 @@ class Joint
     Joint() {};
     Joint(Matrix4d, Matrix4d);
     void transform();
-    void setJoint(double x, double y, double z);
+    void setParent(Joint *parent);
+    void setNode(Node*);
+    Node* getNode();
+    Joint* getParent();
+    void addToChildren(Joint* child);
+    vector<Joint*> getChildren();
     
     
     Matrix4d parent_to_child;
     int channel_start;
-    const char* joint_name = NULL;
+    const char* joint_name = nullptr;
     int num_channels;
-    short* channels_order = NULL;
+    short* channels_order = nullptr;
     OFFSET offset;
     
  protected:
@@ -44,6 +51,9 @@ class Joint
     void rotation2angleaxis(Matrix4d, double*);
     virtual void rotate();
     chrono::system_clock::time_point start_time;
+    Node* node;
+    Joint* parent;
+    std::vector<Joint*> children;
     
 };
 
