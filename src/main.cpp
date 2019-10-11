@@ -30,10 +30,12 @@ void reshape(int w, int h)
 	camera.resize(w, h);
 }
 
-void refreshDisplay(int millisec)
-{
-    glutPostRedisplay();
-    glutTimerFunc(human->motionData.frame_time*1000.0, refreshDisplay, 1);
+void move(int millisec) {
+    if (frame < human->motionData.num_frames) {
+        frame++;
+        glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
+        glutPostRedisplay();
+    }
 }
 
 void display()
@@ -44,7 +46,7 @@ void display()
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
     human->drawMyHuman(human->getRoot(), frame);
-	frame++;
+    cout << "frame: " << frame << endl;
     glPopMatrix();
 	glutSwapBuffers();
 }
@@ -70,7 +72,6 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 
 void mouseCB(int button, int state, int x, int y)
 {
-    glutTimerFunc(human->motionData.frame_time*1000.0, refreshDisplay, 1);
 	if (state == GLUT_UP)
 	{
 		mouseMovePressed   = false;
@@ -147,7 +148,7 @@ int main(int argc, char** argv)
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Viewer");
     
-	const string filename = "MotionData/Trial001.bvh";
+	const string filename = "MotionData/Trial000.bvh";
     human = new Tree(filename);	
 	manual();
 
@@ -158,6 +159,8 @@ int main(int argc, char** argv)
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	glutDisplayFunc(display);
+//    glutTimerFunc(1000, move, 1);
+    glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
 	glutKeyboardFunc(keyboardCB);
 	glutReshapeFunc(reshape);
 	glutMotionFunc(motionCB);

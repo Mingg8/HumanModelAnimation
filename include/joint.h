@@ -20,7 +20,7 @@ class Joint
  public:
     Joint() {};
     Joint(Matrix4d, Matrix4d);
-    void transform();
+    void transform(int frame);
     void setParent(Joint *parent);
     void setNode(Node*);
     Node* getNode();
@@ -48,7 +48,7 @@ class Joint
     double j2c_trans[3];
     void rotation2angleaxis(Matrix4d, double*);
 
-    void rotate();
+    void rotate(int frame);
     chrono::system_clock::time_point start_time;
     Node* node;
     Joint* parent;

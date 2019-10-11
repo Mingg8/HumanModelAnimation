@@ -15,6 +15,7 @@ Joint::Joint(Matrix4d the_parent_offset, Matrix4d the_child_offset)
         j2c_trans[i] = the_child_offset(i,3);
     }
     node = nullptr;
+    joint_name = nullptr;
 }
 
 void Joint::setParent(Joint *the_parent) {
@@ -65,18 +66,43 @@ void Joint::rotation2angleaxis(Matrix4d m, double *aa)
     }
 }
 
-void Joint::transform()
+void Joint::transform(int frame)
 {
     glTranslated(offset(0), offset(1), offset(2));
     // glRotated(p2j_aa[0], p2j_aa[1], p2j_aa[2], p2j_aa[3]);
-    // rotate();
+     rotate(frame);
     // glTranslated(j2c_trans[0], j2c_trans[1], j2c_trans[2]);
     // glRotated(j2c_aa[0], j2c_aa[1], j2c_aa[2], j2c_aa[3]);
 }
 
-void Joint::rotate()
+
+//// channel
+//enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
+//int num_channels;
+//void addToChannel(DIR);
+//int channel_start;
+//Vector3d offset;
+//vector<double> motion;
+//vector<DIR> channels_order;
+
+void Joint::rotate(int frame)
 {
-    
+    for(int i=0; i<num_channels; i++) {
+        double angle = motion[(frame-1)*num_channels+i];
+        if (channels_order[i] == DIR::Xrot) {
+            glRotated(angle, 1, 0, 0);
+        } else if (channels_order[i] == DIR::Yrot) {
+            glRotated(angle, 0, 1, 0);
+        } else if (channels_order[i] == DIR::Zrot) {
+            glRotated(angle, 0, 0, 1);
+        } else if (channels_order[i] == DIR::Xtrans) {
+            glTranslated(angle, 0, 0);
+        } else if (channels_order[i] == DIR::Ytrans) {
+            glTranslated(0, angle, 0);
+        } else if (channels_order[i] == DIR::Ztrans) {
+            glTranslated(0, 0, angle);
+        }
+    }
 }
 
 void Joint::addToChannel(Joint::DIR channel) {

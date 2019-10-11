@@ -122,7 +122,6 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         {
             // loading child joint and setting this as a parent
             Joint* tmp_joint = loadJoint(stream, joint);
-            joint->addToChildren(tmp_joint); // TODO: erase this line if is redundant
 
         }
         else if( tmp == "End" )
@@ -154,7 +153,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
 void Tree::loadMotion(std::istream& stream)
 {
     std::string tmp;
-    
+    cout << "load motion" << endl;
     while( stream.good() )
     {
         stream >> tmp;
@@ -173,10 +172,8 @@ void Tree::loadMotion(std::istream& stream)
             motionData.frame_time = frame_time;
             int num_frames   = motionData.num_frames;
             int num_channels = motionData.num_motion_channels; // total channels
-            
             // creating motion data array
             motionData.data.resize(num_frames, num_channels);
-            
             // foreach frame read and store floats
             for (int frame = 0; frame < num_frames; frame++ )
             {
@@ -211,16 +208,16 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
     }
 }
 
+// TODO: sometimes "Segmentation fault comes out
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
-    if (joint->getNode() != nullptr) (joint->getNode())->draw();
+    if (joint->joint_name != nullptr) cout << joint->joint_name << endl; // TODO: redundant?
+    if (joint->joint_name != "EndSite") (joint->getNode())->draw();
     vector<Joint*> children_vec = joint->getChildren();
-    // std::cout << "children num: " << children_vec.size() << endl;
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i];
-        // cout << j->joint_name << endl;
         glPushMatrix();
-        j->transform();
+        j->transform(frame);
         drawMyHuman(children_vec[i], frame);
         glPopMatrix();
     }
