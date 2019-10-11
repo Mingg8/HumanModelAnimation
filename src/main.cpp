@@ -23,6 +23,7 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 static bool fullScreen = false;
 
 static Tree* human;
+int frame = 0;
 
 void reshape(int w, int h)
 {
@@ -32,7 +33,7 @@ void reshape(int w, int h)
 void refreshDisplay(int millisec)
 {
     glutPostRedisplay();
-    glutTimerFunc(10, refreshDisplay, 1);
+    glutTimerFunc(human->motionData.frame_time*1000.0, refreshDisplay, 1);
 }
 
 void display()
@@ -42,7 +43,8 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    human->drawMyHuman(human->getRoot());
+    human->drawMyHuman(human->getRoot(), frame);
+	frame++;
     glPopMatrix();
 	glutSwapBuffers();
 }
@@ -68,7 +70,7 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 
 void mouseCB(int button, int state, int x, int y)
 {
-    glutTimerFunc(10, refreshDisplay, 1);
+    glutTimerFunc(human->motionData.frame_time*1000.0, refreshDisplay, 1);
 	if (state == GLUT_UP)
 	{
 		mouseMovePressed   = false;
@@ -146,7 +148,7 @@ int main(int argc, char** argv)
 	glutCreateWindow("Viewer");
     
 	const string filename = "MotionData/Trial001.bvh";
-    human = new Tree(filename);
+    human = new Tree(filename);	
 	manual();
 
 	camera.resize(width, height);

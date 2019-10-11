@@ -1,5 +1,8 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/tree.h"
+
+// TODO: change head size
+
 Tree::Tree(const string& filename)
 {
     load(filename);
@@ -63,45 +66,45 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         char c = tmp.at(0);
         if (c=='X' || c == 'Y' || c == 'Z') {
             if (tmp == "Xposition")
-                joint->channels_order[channel_order_index++] = Xposition;
+                joint->addToChannel(Joint::DIR::Xtrans);
             if (tmp == "Yposition")
-                joint->channels_order[channel_order_index++] = Yposition;
+                joint->addToChannel(Joint::DIR::Ytrans);
             if (tmp == "Zposition")
-                joint->channels_order[channel_order_index++] = Zposition;
+                joint->addToChannel(Joint::DIR::Ztrans);
             if( tmp == "Xrotation" )
-                joint->channels_order[channel_order_index++] = Xrotation;
+                joint->addToChannel(Joint::DIR::Xrot);
             if( tmp == "Yrotation" )
-                joint->channels_order[channel_order_index++] = Yrotation;
+                joint->addToChannel(Joint::DIR::Yrot);
             if( tmp == "Zrotation" )
-                joint->channels_order[channel_order_index++] = Zrotation;
+                joint->addToChannel(Joint::DIR::Zrot);
         }
         if (tmp=="OFFSET") {
-            stream >> joint->offset.x
-            >> joint->offset.y
-            >> joint->offset.z;
+            stream >> joint->offset(0)
+            >> joint->offset(1)
+            >> joint->offset(2);
 
-            joint->offset.x = joint->offset.x/resize;
-            joint->offset.y = joint->offset.y/resize;
-            joint->offset.z = joint->offset.z/resize;
+            joint->offset(0) = joint->offset(0)*resize;
+            joint->offset(1) = joint->offset(1)*resize;
+            joint->offset(2) = joint->offset(2)*resize;
 
             if (parent != nullptr) {
-                if (joint->offset.x > (parent->getNode())->maxX) {
-                    (parent->getNode())->maxX = joint->offset.x;
+                if (joint->offset(0) > (parent->getNode())->maxX) {
+                    (parent->getNode())->maxX = joint->offset(0);
                 }
-                if (joint->offset.x < (parent->getNode())->minX) {
-                    (parent->getNode())->minX = joint->offset.x;
+                if (joint->offset(0) < (parent->getNode())->minX) {
+                    (parent->getNode())->minX = joint->offset(0);
                 }
-                if (joint->offset.y > (parent->getNode())->maxY) {
-                    (parent->getNode())->maxY = joint->offset.y;
+                if (joint->offset(1) > (parent->getNode())->maxY) {
+                    (parent->getNode())->maxY = joint->offset(1);
                 }
-                if (joint->offset.y < (parent->getNode())->minY) {
-                    (parent->getNode())->minY = joint->offset.y;
+                if (joint->offset(1) < (parent->getNode())->minY) {
+                    (parent->getNode())->minY = joint->offset(1);
                 }
-                if (joint->offset.z > (parent->getNode())->maxZ) {
-                    (parent->getNode())->maxZ = joint->offset.z;
+                if (joint->offset(2) > (parent->getNode())->maxZ) {
+                    (parent->getNode())->maxZ = joint->offset(2);
                 }
-                if (joint->offset.z < (parent->getNode())->minZ) {
-                    (parent->getNode())->minZ = joint->offset.z;
+                if (joint->offset(2) < (parent->getNode())->minZ) {
+                    (parent->getNode())->minZ = joint->offset(2);
                 }
             }
         }
@@ -113,11 +116,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
             
             // increasing static counter of channel index starting motion section
             joint->channel_start = _channel_start;
-            _channel_start += joint->num_channels;
-            
-            // creating array for channel order specification
-            joint->channels_order = new short[joint->num_channels];
-            
+            _channel_start += joint->num_channels;            
         }
         else if( tmp == "JOINT" )
         {
@@ -138,9 +137,9 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
 
            stream >> tmp;
            if( tmp == "OFFSET" ) {
-              stream >> tmp_joint->offset.x
-              >> tmp_joint->offset.y
-              >> tmp_joint->offset.z;
+              stream >> tmp_joint->offset(0)
+              >> tmp_joint->offset(1)
+              >> tmp_joint->offset(2);
                // TODO: modify size
            }
            stream >> tmp;
@@ -168,19 +167,20 @@ void Tree::loadMotion(std::istream& stream)
         else if( trim(tmp) == "Frame" )
         {
             // loading frame time
-            float frame_time;
+            double frame_time;
             stream >> tmp >> frame_time;
-            
+
+            motionData.frame_time = frame_time;
             int num_frames   = motionData.num_frames;
-            int num_channels = motionData.num_motion_channels;
+            int num_channels = motionData.num_motion_channels; // total channels
             
             // creating motion data array
-            motionData.data = new float[num_frames * num_channels];
+            motionData.data.resize(num_frames, num_channels);
             
             // foreach frame read and store floats
-            for( int frame = 0; frame < num_frames; frame++ )
+            for (int frame = 0; frame < num_frames; frame++ )
             {
-                for( int channel = 0; channel < num_channels; channel++)
+                for (int channel = 0; channel < num_channels; channel++)
                 {
                     // reading float
                     float x;
@@ -191,14 +191,27 @@ void Tree::loadMotion(std::istream& stream)
                     
                     // calculating index for storage
                     int index = frame * num_channels + channel;
-                    motionData.data[index] = x;
+                    motionData.data(frame, channel) = x;
                 }
+                int data_index = 0;
+                sendDataToJoint(root_joint, frame, data_index);
             }
         }
     }
 }
 
-void Tree::drawMyHuman(Joint *joint)
+void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
+    for (int i=0; i<joint->num_channels; i++)
+        joint->motion.push_back(
+            motionData.data(frame,data_index+i));
+    data_index = data_index + joint->num_channels;
+    vector<Joint*> children = joint->getChildren();
+    for (int i=0; i<children.size(); i++) {
+        sendDataToJoint(children[i], frame, data_index);
+    }
+}
+
+void Tree::drawMyHuman(Joint *joint, int frame)
 {
     if (joint->getNode() != nullptr) (joint->getNode())->draw();
     vector<Joint*> children_vec = joint->getChildren();
@@ -207,8 +220,8 @@ void Tree::drawMyHuman(Joint *joint)
         Joint *j = children_vec[i];
         // cout << j->joint_name << endl;
         glPushMatrix();
-//        j->transform();
-        drawMyHuman(children_vec[i]);
+        j->transform();
+        drawMyHuman(children_vec[i], frame);
         glPopMatrix();
     }
 }

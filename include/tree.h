@@ -42,10 +42,10 @@ typedef struct
 {
     unsigned int num_frames;              // number of frames
     unsigned int num_motion_channels = 0; // number of motion channels
-    float* data = nullptr;                   // motion float data array
+    MatrixXd data;                   // motion float data array
     unsigned* joint_channel_offsets;      // number of channels from beggining of hierarchy for i-th joint
+    double frame_time;
 } MOTION;
-
 
 class Tree {
   public:
@@ -53,10 +53,10 @@ class Tree {
     Joint* getRoot();
     void setUpMyHuman();
     void setUpMyHuman2();
-    void drawMyHuman(Joint*);
+    void drawMyHuman(Joint* joint, int frame);
     void load(const std::string& filename);
-    
-
+    MOTION motionData;
+    void sendDataToJoint(Joint* joint, int frame, int &data_index);
 
   private:
     double pelvis_radius = 0.15/2;
@@ -78,10 +78,9 @@ class Tree {
     Joint* loadJoint(std::istream& stream, Joint* parent);
     void loadMotion(std::istream& stream);
     void loadHierarchy(std::istream& stream);
-    MOTION motionData;
 
     Joint* root_joint;
     int body_num = 0;
     double default_size = 0.2;
-    double resize = 1/10.0;
+    double resize = 1/15.0;
 };
