@@ -107,25 +107,25 @@ void Tree::loadJoint(std::istream& stream, Joint* parent, Joint* joint) {
         {
             // loading child joint and setting this as a parent
             Joint* child_joint = new Joint();
+            
             loadJoint(stream, joint, child_joint);
         }
         else if( tmp == "End" )
         {
             // loading End Site joint
-            stream >> tmp >> tmp; // Site {
-            
-            Joint* tmp_joint = new Joint;
-            
-           tmp_joint->setParent(joint);
-           tmp_joint->num_channels = 0;
-           tmp_joint->joint_name = "EndSite";
-           joint->addToChildren(tmp_joint);
+//            stream >> tmp >> tmp; // Site {
+
+//            Joint* tmp_joint = new Joint;
+//
+//            tmp_joint->joint_name = "EndSite";
+//           tmp_joint->setParent(joint);
+//           tmp_joint->num_channels = 0;
 
            stream >> tmp;
            if( tmp == "OFFSET" ) {
-               stream >> tmp_joint->offset.x
-               >> tmp_joint->offset.y
-               >> tmp_joint->offset.z;
+//               stream >> tmp_joint->offset.x
+//               >> tmp_joint->offset.y
+//               >> tmp_joint->offset.z;
                // TODO: modify size
            }
            stream >> tmp;
@@ -185,13 +185,12 @@ void Tree::loadMotion(std::istream& stream)
 void Tree::drawMyHuman(Joint *joint, bool draw)
 {
     if (draw == true) (joint->getNode())->draw();
-    cout << "DEBUG-0" << endl;
     vector<Joint*> children_vec = joint->getChildren();
-    cout << "children num: " << children_vec.size() << endl;
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i];
+        cout << j->joint_name << endl;
         glPushMatrix();
-        j->transform();
+//        j->transform();
         drawMyHuman(children_vec[i], true);
         glPopMatrix();
     }

@@ -40,6 +40,7 @@ class Joint
     int num_channels;
     short* channels_order = nullptr;
     OFFSET offset;
+    bool drawJoint = true;
     
  protected:
     Matrix4d parent_to_joint;
