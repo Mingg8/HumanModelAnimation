@@ -37,14 +37,12 @@ void refreshDisplay(int millisec)
 
 void display()
 {
-	cout << "start display" << endl;
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    human->drawMyHuman(human->getRoot(), false);
-	cout << "display" << endl;
+    human->drawMyHuman(human->getRoot());
     glPopMatrix();
 	glutSwapBuffers();
 }

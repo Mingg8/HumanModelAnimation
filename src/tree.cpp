@@ -12,19 +12,27 @@ void Tree::loadHierarchy(std::istream& stream) {
         stream >> tmp;
         if (trim(tmp)=="ROOT") {
             cout << "root" << endl;
-            root_joint = new Joint();
-            loadJoint(stream, nullptr, root_joint);
+            loadJoint(stream, nullptr);
         }
         else if(trim(tmp) == "MOTION")
             loadMotion(stream);
     }
 }
 
-void Tree::loadJoint(std::istream& stream, Joint* parent, Joint* joint) {
+Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
     // load joint name
     std::string* name = new std::string;
     stream >> *name;
+
+    Joint* joint;
+    if (parent == nullptr) {
+        root_joint = new Joint();
+        joint = root_joint;
+    } else {
+        joint = new Joint();
+    }
     joint->joint_name = name->c_str();
+    cout << joint->joint_name << endl;
     
     std::string tmp;
     
@@ -39,8 +47,11 @@ void Tree::loadJoint(std::istream& stream, Joint* parent, Joint* joint) {
 
     BoxNode* node = new BoxNode(body_num, -default_size, default_size,
         -default_size, default_size, -default_size, default_size);
+
     body_num ++;
-    if (parent != nullptr) joint->setParent(parent);
+    if (parent != nullptr) {
+        joint->setParent(parent);
+    }
     joint->setNode(node);
 
     
@@ -68,6 +79,11 @@ void Tree::loadJoint(std::istream& stream, Joint* parent, Joint* joint) {
             stream >> joint->offset.x
             >> joint->offset.y
             >> joint->offset.z;
+
+            joint->offset.x = joint->offset.x/resize;
+            joint->offset.y = joint->offset.y/resize;
+            joint->offset.z = joint->offset.z/resize;
+
             if (parent != nullptr) {
                 if (joint->offset.x > (parent->getNode())->maxX) {
                     (parent->getNode())->maxX = joint->offset.x;
@@ -106,32 +122,32 @@ void Tree::loadJoint(std::istream& stream, Joint* parent, Joint* joint) {
         else if( tmp == "JOINT" )
         {
             // loading child joint and setting this as a parent
-            Joint* child_joint = new Joint();
-            loadJoint(stream, joint, child_joint);
+            Joint* tmp_joint = loadJoint(stream, joint);
+            joint->addToChildren(tmp_joint); // TODO: erase this line if is redundant
+
         }
         else if( tmp == "End" )
         {
             // loading End Site joint
             stream >> tmp >> tmp; // Site {
-            
             Joint* tmp_joint = new Joint;
-            
-           tmp_joint->setParent(joint);
-           tmp_joint->num_channels = 0;
-           tmp_joint->joint_name = "EndSite";
-           joint->addToChildren(tmp_joint);
+
+            tmp_joint->joint_name = "EndSite";
+            tmp_joint->setParent(joint);
+            tmp_joint->num_channels = 0;
 
            stream >> tmp;
            if( tmp == "OFFSET" ) {
-               stream >> tmp_joint->offset.x
-               >> tmp_joint->offset.y
-               >> tmp_joint->offset.z;
+              stream >> tmp_joint->offset.x
+              >> tmp_joint->offset.y
+              >> tmp_joint->offset.z;
                // TODO: modify size
            }
            stream >> tmp;
         }
         else if( tmp == "}" ) {
-            return;
+            cout << "end: - " << joint->joint_name << endl;
+            return joint;
         }
     }
 }
@@ -182,17 +198,17 @@ void Tree::loadMotion(std::istream& stream)
     }
 }
 
-void Tree::drawMyHuman(Joint *joint, bool draw)
+void Tree::drawMyHuman(Joint *joint)
 {
-    if (draw == true) (joint->getNode())->draw();
-    cout << "DEBUG-0" << endl;
+    if (joint->getNode() != nullptr) (joint->getNode())->draw();
     vector<Joint*> children_vec = joint->getChildren();
-    cout << "children num: " << children_vec.size() << endl;
+    // std::cout << "children num: " << children_vec.size() << endl;
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i];
+        // cout << j->joint_name << endl;
         glPushMatrix();
-        j->transform();
-        drawMyHuman(children_vec[i], true);
+//        j->transform();
+        drawMyHuman(children_vec[i]);
         glPopMatrix();
     }
 }

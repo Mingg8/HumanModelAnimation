@@ -53,7 +53,7 @@ class Tree {
     Joint* getRoot();
     void setUpMyHuman();
     void setUpMyHuman2();
-    void drawMyHuman(Joint*, bool);
+    void drawMyHuman(Joint*);
     void load(const std::string& filename);
     
 
@@ -75,12 +75,13 @@ class Tree {
     double hand_radius = 0.08;
     double pelvis_offset = 0.08;
     
-    void loadJoint(std::istream& stream, Joint* parent, Joint* joint);
+    Joint* loadJoint(std::istream& stream, Joint* parent);
     void loadMotion(std::istream& stream);
     void loadHierarchy(std::istream& stream);
     MOTION motionData;
 
     Joint* root_joint;
     int body_num = 0;
-    double default_size = 3;
+    double default_size = 0.2;
+    double resize = 1/10.0;
 };

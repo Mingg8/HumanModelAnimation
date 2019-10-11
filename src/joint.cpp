@@ -14,6 +14,7 @@ Joint::Joint(Matrix4d the_parent_offset, Matrix4d the_child_offset)
         p2j_trans[i] = the_parent_offset(i,3);
         j2c_trans[i] = the_child_offset(i,3);
     }
+    node = nullptr;
 }
 
 void Joint::setParent(Joint *the_parent) {
@@ -29,7 +30,6 @@ Node* Joint::getNode() {return node;}
 
 void Joint::addToChildren(Joint* child) {
     children.push_back(child);
-    cout << "add children" << endl;
 }
 
 vector<Joint*> Joint::getChildren() {return children;}
