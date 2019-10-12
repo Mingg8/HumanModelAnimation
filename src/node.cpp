@@ -11,45 +11,53 @@ int Node::getId()
     return num;
 }
 
-void Node::draw() {
-}
+void Node::draw() {}
+
+void Node::resize(Vector3d offset) {}
 
 SphereNode::SphereNode(int the_num, double r) {
     num = the_num;
     radius = r;
+    type = NodeType::SPHERE;
 }
 
 void SphereNode::draw() {
-    
     GLUquadric *sphere;
     sphere = gluNewQuadric();
     gluSphere(sphere, radius, 50, 10);
+}
+
+void SphereNode::resize(Vector3d offset) {
+    
 }
 
 CylinderNode::CylinderNode(int the_num, double r, double l) {
     num = the_num;
     radius = r;
     length = l;
-    
+    type = NodeType::CYLINDER;
 }
 
 void CylinderNode::draw() {
     GLUquadricObj *quadratic;
     quadratic = gluNewQuadric();
     gluCylinder(quadratic, radius, radius, length, 32, 32);
+}
+
+void CylinderNode::resize(Vector3d offset) {
     
 }
 
-BoxNode::BoxNode(int the_num, double _minX, double _maxX, double _minY,
-    double _maxY, double _minZ, double _maxZ) {
-    minX = _minX;
-    maxX = _maxX;
-    minY = _minY;
-    maxY = _maxY;
-    minZ = _minZ;
-    maxZ = _maxZ;
+BoxNode::BoxNode(int the_num, double _default) {
+    minX = -_default;
+    maxX = _default;
+    minY = -_default;
+    maxY = _default;
+    minZ = -_default;
+    maxZ = _default;
     
     num = the_num;
+    type = NodeType::BOX;
 }
 
 void BoxNode::draw() {
@@ -89,4 +97,25 @@ void BoxNode::draw() {
     glVertex3d(minX, minY, minZ);
     glVertex3d(minX, minY, maxZ);
     glEnd();
+}
+
+void BoxNode::resize(Vector3d offset) {
+    if (offset(0) > maxX) {
+        maxX = offset(0);
+    }
+    if (offset(0) < minX) {
+        minX = offset(0);
+    }
+    if (offset(1) > maxY) {
+        maxY = offset(1);
+    }
+    if (offset(1) < minY) {
+        minY = offset(1);
+    }
+    if (offset(2) > maxZ) {
+        maxZ = offset(2);
+    }
+    if (offset(2) < minZ) {
+        minZ = offset(2);
+    }
 }

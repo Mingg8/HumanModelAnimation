@@ -23,6 +23,10 @@ void Joint::setParent(Joint *the_parent) {
     parent->addToChildren(this);
 }
 
+Joint* Joint::getParent() {
+    return parent;
+}
+
 void Joint::setNode(Node *the_node) {
     node = the_node;
 }
@@ -76,15 +80,6 @@ void Joint::transform(int frame)
 }
 
 
-//// channel
-//enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
-//int num_channels;
-//void addToChannel(DIR);
-//int channel_start;
-//Vector3d offset;
-//vector<double> motion;
-//vector<DIR> channels_order;
-
 void Joint::rotate(int frame)
 {
     for(int i=0; i<num_channels; i++) {
@@ -108,3 +103,4 @@ void Joint::rotate(int frame)
 void Joint::addToChannel(Joint::DIR channel) {
     channels_order.push_back(channel);
 }
+

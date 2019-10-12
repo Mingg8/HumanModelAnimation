@@ -2,7 +2,6 @@
 #include "../include/tree.h"
 
 // TODO: change head size
-
 Tree::Tree(const string& filename)
 {
     load(filename);
@@ -14,7 +13,7 @@ void Tree::loadHierarchy(std::istream& stream) {
     while(stream.good()) {
         stream >> tmp;
         if (trim(tmp)=="ROOT") {
-            cout << "root" << endl;
+//            cout << "root" << endl;
             loadJoint(stream, nullptr);
         }
         else if(trim(tmp) == "MOTION")
@@ -35,21 +34,10 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         joint = new Joint();
     }
     joint->joint_name = name->c_str();
-    cout << joint->joint_name << endl;
+//    cout << joint->joint_name << endl;
     
     std::string tmp;
-    
-    // setting local matrix to identity
-    joint->parent_to_child << 1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1;
-    
-    static int _channel_start = 0;
-    unsigned channel_order_index = 0;
-
-    BoxNode* node = new BoxNode(body_num, -default_size, default_size,
-        -default_size, default_size, -default_size, default_size);
+    BoxNode* node = new BoxNode(body_num, default_size);
 
     body_num ++;
     if (parent != nullptr) {
@@ -82,41 +70,17 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
             stream >> joint->offset(0)
             >> joint->offset(1)
             >> joint->offset(2);
-
-            joint->offset(0) = joint->offset(0)*resize;
-            joint->offset(1) = joint->offset(1)*resize;
-            joint->offset(2) = joint->offset(2)*resize;
-
+            joint->offset = (joint->offset)*resize;
+            
             if (parent != nullptr) {
-                if (joint->offset(0) > (parent->getNode())->maxX) {
-                    (parent->getNode())->maxX = joint->offset(0);
-                }
-                if (joint->offset(0) < (parent->getNode())->minX) {
-                    (parent->getNode())->minX = joint->offset(0);
-                }
-                if (joint->offset(1) > (parent->getNode())->maxY) {
-                    (parent->getNode())->maxY = joint->offset(1);
-                }
-                if (joint->offset(1) < (parent->getNode())->minY) {
-                    (parent->getNode())->minY = joint->offset(1);
-                }
-                if (joint->offset(2) > (parent->getNode())->maxZ) {
-                    (parent->getNode())->maxZ = joint->offset(2);
-                }
-                if (joint->offset(2) < (parent->getNode())->minZ) {
-                    (parent->getNode())->minZ = joint->offset(2);
-                }
+                (parent->getNode())->resize(joint->offset);
             }
         }
         else if (tmp == "CHANNELS") {
             stream >> joint->num_channels;
-            
             // adding to motiondata
             motionData.num_motion_channels += joint->num_channels;
             
-            // increasing static counter of channel index starting motion section
-            joint->channel_start = _channel_start;
-            _channel_start += joint->num_channels;            
         }
         else if( tmp == "JOINT" )
         {
@@ -139,12 +103,15 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
               stream >> tmp_joint->offset(0)
               >> tmp_joint->offset(1)
               >> tmp_joint->offset(2);
-               // TODO: modify size
+               
+               tmp_joint->offset = (tmp_joint->offset)*resize;
+               (parent->getNode())->resize(tmp_joint->offset);
+            // TODO: modify size
            }
            stream >> tmp;
         }
         else if( tmp == "}" ) {
-            cout << "end: - " << joint->joint_name << endl;
+//            cout << "end: - " << joint->joint_name << endl;
             return joint;
         }
     }
@@ -208,10 +175,9 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
     }
 }
 
-// TODO: sometimes "Segmentation fault comes out
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
-    if (joint->joint_name != nullptr) cout << joint->joint_name << endl; // TODO: redundant?
+//    if (joint->joint_name != nullptr) cout << joint->joint_name << endl; // TODO: redundant?
     if (joint->joint_name != "EndSite") (joint->getNode())->draw();
     vector<Joint*> children_vec = joint->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {
@@ -227,7 +193,6 @@ Joint* Tree::getRoot()
 {
     return root_joint;
 }
-
 
 void Tree::load(const std::string& filename)
 {

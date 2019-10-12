@@ -37,7 +37,6 @@ static inline std::string &trim(std::string &s) {
     return ltrim(rtrim(s));
 }
 
-
 typedef struct
 {
     unsigned int num_frames;              // number of frames
@@ -81,6 +80,6 @@ class Tree {
 
     Joint* root_joint;
     int body_num = 0;
-    double default_size = 0.2;
+    double default_size = 0.1;
     double resize = 1/15.0;
 };

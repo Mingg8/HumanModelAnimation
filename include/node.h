@@ -8,9 +8,11 @@
 #include <GL/glut.h>
 #endif
 
-//#define M_PI 3.141592
+#include <Eigen/Dense>
 
+//#define M_PI 3.141592
 using namespace std;
+using namespace Eigen;
 
 class Node
 {
@@ -23,18 +25,21 @@ class Node
     int getId();
     
     virtual void draw();
+    virtual void resize(Vector3d);
     double minX, maxX, minY, maxY, minZ, maxZ;
-    
+    enum NodeType {SPHERE, BOX, CYLINDER};
 
  private:
  protected:
     int num;
+    NodeType type;
 };
 
 class SphereNode: public Node {
  public:
     SphereNode(int the_num, double r);
     void draw();
+    void resize(Vector3d offset);
  private:
     double radius;
 };
@@ -43,6 +48,7 @@ class CylinderNode: public Node {
  public:
     CylinderNode(int the_num, double r, double l);
     void draw();
+    void resize(Vector3d offset);
     
  private:
     double radius;
@@ -51,10 +57,10 @@ class CylinderNode: public Node {
 
 class BoxNode: public Node {
  public:
-    BoxNode(int the_num, double _minX, double _maxX, double _minY,
-      double _maxY, double _minZ, double _maxZ);
+    BoxNode(int the_num, double _default);
     void draw();
     void draw_old();
+    void resize(Vector3d offset);
     
  private:
     double height;

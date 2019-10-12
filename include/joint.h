@@ -28,15 +28,13 @@ class Joint
     void addToChildren(Joint* child);
     vector<Joint*> getChildren();
     
-    Matrix4d parent_to_child;
     const char* joint_name = nullptr;
+    Vector3d offset;
 
     // channel
     enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
     int num_channels;
     void addToChannel(DIR);
-    int channel_start;
-    Vector3d offset;
     vector<double> motion;
     
  protected:
