@@ -30,6 +30,7 @@ class Joint
     
     const char* joint_name = nullptr;
     Vector3d offset;
+    void setOffset(Vector3d offset);
 
     // channel
     enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};

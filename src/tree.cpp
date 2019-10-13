@@ -37,7 +37,14 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
 //    cout << joint->joint_name << endl;
     
     std::string tmp;
-    BoxNode* node = new BoxNode(body_num, default_size);
+    Node* node;
+    const char* head = "head";
+    if (strcmp(head, joint->joint_name)) {
+        cout << joint->joint_name << endl;
+        node = new BoxNode(body_num, default_size);
+    } else {
+        node = new SphereNode(body_num, default_size);
+    }
 
     body_num ++;
     if (parent != nullptr) {
@@ -177,7 +184,7 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
 
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
-//    if (joint->joint_name != nullptr) cout << joint->joint_name << endl; // TODO: redundant?
+//    if (joint->joint_name != nullptr) cout << joint->joint_name << endl;
     if (joint->joint_name != "EndSite") (joint->getNode())->draw();
     vector<Joint*> children_vec = joint->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {

@@ -11,7 +11,8 @@ int Node::getId()
     return num;
 }
 
-void Node::draw() {}
+void Node::draw() {
+}
 
 void Node::resize(Vector3d offset) {}
 
@@ -22,6 +23,7 @@ SphereNode::SphereNode(int the_num, double r) {
 }
 
 void SphereNode::draw() {
+    cout << "draw sphere" << endl;
     GLUquadric *sphere;
     sphere = gluNewQuadric();
     gluSphere(sphere, radius, 50, 10);

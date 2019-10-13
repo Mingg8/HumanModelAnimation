@@ -46,7 +46,7 @@ void display()
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
     human->drawMyHuman(human->getRoot(), frame);
-    cout << "frame: " << frame << endl;
+//    cout << "frame: " << frame << endl;
     glPopMatrix();
 	glutSwapBuffers();
 }

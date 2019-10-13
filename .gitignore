@@ -1,4 +1,6 @@
 out/*
+MotionData/*
+workspace*
 *.o
 main
 .DS_Store

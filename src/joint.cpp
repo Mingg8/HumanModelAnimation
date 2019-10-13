@@ -37,6 +37,9 @@ void Joint::addToChildren(Joint* child) {
     children.push_back(child);
 }
 
+void setOffset(Vector3d offset) {
+}
+
 vector<Joint*> Joint::getChildren() {return children;}
 
 void Joint::rotation2angleaxis(Matrix4d m, double *aa)
