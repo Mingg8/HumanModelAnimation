@@ -42,6 +42,7 @@ class SphereNode: public Node {
     void resize(Vector3d offset);
  private:
     double radius;
+    Vector3d offset;
 };
 
 class CylinderNode: public Node {

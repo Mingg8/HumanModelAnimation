@@ -112,7 +112,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
               >> tmp_joint->offset(2);
                
                tmp_joint->offset = (tmp_joint->offset)*resize;
-               (parent->getNode())->resize(tmp_joint->offset);
+               (joint->getNode())->resize(tmp_joint->offset);
             // TODO: modify size
            }
            stream >> tmp;

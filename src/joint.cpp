@@ -37,7 +37,9 @@ void Joint::addToChildren(Joint* child) {
     children.push_back(child);
 }
 
-void setOffset(Vector3d offset) {
+void Joint::setOffset(Vector3d _offset) {
+    offset = _offset;
+    node->resize(_offset);
 }
 
 vector<Joint*> Joint::getChildren() {return children;}

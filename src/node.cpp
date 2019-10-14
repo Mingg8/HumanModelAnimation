@@ -23,14 +23,17 @@ SphereNode::SphereNode(int the_num, double r) {
 }
 
 void SphereNode::draw() {
-    cout << "draw sphere" << endl;
+    glPushMatrix();
+    glTranslated(offset(0)/2.0, offset(1)/2.0, offset(2)/2.0);
     GLUquadric *sphere;
     sphere = gluNewQuadric();
     gluSphere(sphere, radius, 50, 10);
+    glPopMatrix();
 }
 
-void SphereNode::resize(Vector3d offset) {
-    
+void SphereNode::resize(Vector3d _offset) {
+    offset = _offset;
+    radius = _offset.norm()/2.0;
 }
 
 CylinderNode::CylinderNode(int the_num, double r, double l) {
