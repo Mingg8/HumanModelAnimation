@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Viewer");
     
-	const string filename = "MotionData/Trial000.bvh";
+	const string filename = "MotionData/Trial002.bvh";
     human = new Tree(filename);	
 	manual();
 
@@ -159,7 +159,6 @@ int main(int argc, char** argv)
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	glutDisplayFunc(display);
-//    glutTimerFunc(1000, move, 1);
     glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
 	glutKeyboardFunc(keyboardCB);
 	glutReshapeFunc(reshape);

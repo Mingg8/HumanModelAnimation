@@ -1,7 +1,15 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/tree.h"
 
-// TODO: change head size
+const char* head = "head";
+const char* pelvis = "pelvis";
+const char* lfoot = "lfoot";
+const char* rfoot = "rfoot";
+const char* ltoes = "ltoes";
+const char* rtoes = "rtoes";
+const char* rhand = "rhand";
+const char* lhand = "lhand";
+
 Tree::Tree(const string& filename)
 {
     load(filename);
@@ -39,11 +47,18 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
     std::string tmp;
     Node* node;
     const char* head = "head";
-    if (strcmp(head, joint->joint_name)) {
-        cout << joint->joint_name << endl;
+    if (strcmp(head, joint->joint_name) == false ||
+        strcmp(lhand, joint->joint_name) == false ||
+        strcmp(rhand, joint->joint_name) == false) {
+        node = new SphereNode(body_num, default_size);
+    } else if (strcmp(pelvis, joint->joint_name) == false ||
+               strcmp(lfoot, joint->joint_name) == false ||
+               strcmp(rfoot, joint->joint_name) == false ||
+               strcmp(ltoes, joint->joint_name) == false ||
+               strcmp(rtoes, joint->joint_name) == false) {
         node = new BoxNode(body_num, default_size);
     } else {
-        node = new SphereNode(body_num, default_size);
+        node = new CylinderNode(body_num, default_size);
     }
 
     body_num ++;

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <math.h>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -10,7 +11,7 @@
 
 #include <Eigen/Dense>
 
-//#define M_PI 3.141592
+#define M_PI 3.141592
 using namespace std;
 using namespace Eigen;
 
@@ -47,13 +48,16 @@ class SphereNode: public Node {
 
 class CylinderNode: public Node {
  public:
-    CylinderNode(int the_num, double r, double l);
+    CylinderNode(int the_num, double _default);
     void draw();
     void resize(Vector3d offset);
     
  private:
     double radius;
     double length;
+    Vector3d offset;
+    Vector3d axis;
+    double angle;
 };
 
 class BoxNode: public Node {

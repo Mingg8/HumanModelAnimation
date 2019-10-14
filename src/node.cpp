@@ -36,21 +36,33 @@ void SphereNode::resize(Vector3d _offset) {
     radius = _offset.norm()/2.0;
 }
 
-CylinderNode::CylinderNode(int the_num, double r, double l) {
+CylinderNode::CylinderNode(int the_num, double _default) {
     num = the_num;
-    radius = r;
-    length = l;
+    radius = _default;
+    length = _default;
     type = NodeType::CYLINDER;
 }
 
 void CylinderNode::draw() {
+    glPushMatrix();
+    glRotated(angle, axis(0), axis(1), axis(2));
     GLUquadricObj *quadratic;
     quadratic = gluNewQuadric();
     gluCylinder(quadratic, radius, radius, length, 32, 32);
+    glPopMatrix();
 }
 
-void CylinderNode::resize(Vector3d offset) {
+void CylinderNode::resize(Vector3d _offset) {
+    offset = _offset;
+    length = _offset.norm();
+    Vector3d z_axis;
+    z_axis << 0, 0, 1;
+    axis = z_axis.cross(_offset);
+    axis = axis/axis.norm();
     
+    double scalar = z_axis.dot(_offset);
+    scalar = scalar/(_offset.norm());
+    angle = acos(scalar) /M_PI * 180.0;
 }
 
 BoxNode::BoxNode(int the_num, double _default) {
