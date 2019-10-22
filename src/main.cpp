@@ -1,74 +1,81 @@
 #define GL_SILENCE_DEPRECATION
 
-#include "../include/camera.h"
-#include "../include/tree.h"
+// #include "../include/camera.h"
+// #include "../include/tree.h"
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <iostream>
 #include <memory>
-#ifdef __APPLE__
-    #include <GLUT/glut.h>
-#else
-    #include <GL/glut.h>
-#endif
 
-static Camera camera;
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+GLFWwindow* window;
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+using namespace glm;
 
-static unsigned int width = 700;
-static unsigned int height = 700;
+#include <common/shader.hpp>
 
-static bool mouseRotatePressed = false;
-static bool mouseMovePressed   = false;
-static bool mouseZoomPressed   = false;
-static int lastX = 0, lastY = 0, lastZoom = 0;
+// static Camera camera;
 
-static bool fullScreen = false;
+// static unsigned int width = 700;
+// static unsigned int height = 700;
 
-static Tree* human;
-int frame = 0;
+// static bool mouseRotatePressed = false;
+// static bool mouseMovePressed   = false;
+// static bool mouseZoomPressed   = false;
+// static int lastX = 0, lastY = 0, lastZoom = 0;
 
-void reshape(int w, int h)
-{
-	camera.resize(w, h);
-}
+// static bool fullScreen = false;
 
-void move(int millisec) {
-    if (frame < human->motionData.num_frames) {
-        frame++;
-        glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
-        glutPostRedisplay();
-    }
-}
+// static Tree* human;
+// int frame = 0;
 
-void display()
-{
-	glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	camera.apply();
-    glColor3f(0.2, 0.45, 0.6);
-    glPushMatrix();
-    human->drawMyHuman(human->getRoot(), frame);
-//    cout << "frame: " << frame << endl;
-    glPopMatrix();
-	glutSwapBuffers();
-}
+// void reshape(int w, int h)
+// {
+// 	camera.resize(w, h);
+// }
 
-void keyboardCB(unsigned char keyPressed, int x, int y)
-{
-	switch (keyPressed) {
-		case 'f':
-			if (fullScreen == true) {
-				glutReshapeWindow(width, height);
-				fullScreen = false;
-			} else {
-				glutFullScreen();
-				fullScreen = true;
-			}
-			break;
-		case 'q':
-			exit(0);
-			break;
-	}
-	glutPostRedisplay();
-}
+// void move(int millisec) {
+//     if (frame < human->motionData.num_frames) {
+//         frame++;
+//         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
+//         glutPostRedisplay();
+//     }
+// }
+
+// void display()
+// {
+// 	glLoadIdentity();
+// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+// 	camera.apply();
+//     glColor3f(0.2, 0.45, 0.6);
+//     glPushMatrix();
+//     human->drawMyHuman(human->getRoot(), frame);
+// //    cout << "frame: " << frame << endl;
+//     glPopMatrix();
+// 	glutSwapBuffers();
+// }
+
+// void keyboardCB(unsigned char keyPressed, int x, int y)
+// {
+// 	switch (keyPressed) {
+// 		case 'f':
+// 			if (fullScreen == true) {
+// 				glutReshapeWindow(width, height);
+// 				fullScreen = false;
+// 			} else {
+// 				glutFullScreen();
+// 				fullScreen = true;
+// 			}
+// 			break;
+// 		case 'q':
+// 			exit(0);
+// 			break;
+// 	}
+// 	glutPostRedisplay();
+// }
 
 void mouseCB(int button, int state, int x, int y)
 {
@@ -107,65 +114,164 @@ void mouseCB(int button, int state, int x, int y)
 	glutPostRedisplay();
 }
 
-void motionCB(int x, int y)
-{
-	if (mouseRotatePressed == true)
-	{
-		camera.rotate(x, y);
-	}
-	else if (mouseMovePressed == true)
-	{
-		camera.move((x - lastX) / static_cast<float>(width),
-				(lastY - y) / static_cast<float>(height), 0.0);
-		lastX = x;
-		lastY = y;
-	}
-	else if (mouseZoomPressed == true)
-	{
-		camera.zoom(float(y - lastZoom) / height);
-		lastZoom = y;
-	}
+// void motionCB(int x, int y)
+// {
+// 	if (mouseRotatePressed == true)
+// 	{
+// 		camera.rotate(x, y);
+// 	}
+// 	else if (mouseMovePressed == true)
+// 	{
+// 		camera.move((x - lastX) / static_cast<float>(width),
+// 				(lastY - y) / static_cast<float>(height), 0.0);
+// 		lastX = x;
+// 		lastY = y;
+// 	}
+// 	else if (mouseZoomPressed == true)
+// 	{
+// 		camera.zoom(float(y - lastZoom) / height);
+// 		lastZoom = y;
+// 	}
 
-	glutPostRedisplay();
+// 	glutPostRedisplay();
+// }
+
+// void manual()
+// {
+// 	std::cout << "==================manual=================" << std::endl;
+// 	std::cout << std::endl;
+// 	std::cout << "   rotate  :  left click & drag" << std::endl;
+// 	std::cout << "    zoom   :  ctrl + left click & drag" << std::endl;
+// 	std::cout << " translate :  shift + left click & drag" << std::endl;
+// 	std::cout << "  'f' key  :  full screen" << std::endl;
+// 	std::cout << std::endl;
+// 	std::cout << "=========================================" << std::endl;
+// }
+
+
+static const GLfloat g_vertex_triangle[] = {
+	-1.0f, -1.0f, 2.0f,
+	1.0f, -1.0f, 2.0f,
+	1.0f, -1.0f, 1.0f
+};
+
+GLuint setUpObjects() {
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	GLuint vertexbuffer;
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_triangle), g_vertex_triangle, GL_STATIC_DRAW);
+	return vertexbuffer;
 }
 
-void manual()
-{
-	std::cout << "==================manual=================" << std::endl;
-	std::cout << std::endl;
-	std::cout << "   rotate  :  left click & drag" << std::endl;
-	std::cout << "    zoom   :  ctrl + left click & drag" << std::endl;
-	std::cout << " translate :  shift + left click & drag" << std::endl;
-	std::cout << "  'f' key  :  full screen" << std::endl;
-	std::cout << std::endl;
-	std::cout << "=========================================" << std::endl;
+void drawTriangle(GLuint vertexBuffer) {
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glDisableVertexAttribArray(0);
 }
 
-int main(int argc, char** argv)
+int main( void)
 {
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
-	glutInitWindowSize(width, height);
-	glutCreateWindow("Viewer");
-    
-	const string filename = "MotionData/Trial000.bvh";
-    human = new Tree(filename);	
-	manual();
+	// Initialise GLFW
+	if( !glfwInit() )
+	{
+		fprintf( stderr, "Failed to initialize GLFW\n" );
+		getchar();
+		return -1;
+	}
 
-	camera.resize(width, height);
-	glClearColor(0.8, 0.8, 0.8, 1.0);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	glClearDepth(1.0);
-	glDepthFunc(GL_LESS);
+	// Open a window and create its OpenGL context
+	window = glfwCreateWindow( 1024, 768, "main", NULL, NULL);
+	if( window == NULL ){
+		fprintf( stderr, "Failed to open GLFW window.\n" );
+		getchar();
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+
+	// Initialize GLEW
+	glewExperimental = true; // Needed for core profile
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Failed to initialize GLEW\n");
+		getchar();
+		glfwTerminate();
+		return -1;
+	}
+
+	// Ensure we can capture the escape key being pressed below
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+	// Dark blue background
+	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+
+	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
-	glutDisplayFunc(display);
-//    glutTimerFunc(1000, move, 1);
-    glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
-	glutKeyboardFunc(keyboardCB);
-	glutReshapeFunc(reshape);
-	glutMotionFunc(motionCB);
-	glutMouseFunc(mouseCB);
+	// Accept fragment if it closer to the camera than the former one
+	glDepthFunc(GL_LESS); 
 
-	glutMainLoop();
+	// Create and compile our GLSL program from the shaders
+	GLuint programID = LoadShaders( "../src/TransformVertexShader.vertexshader", "../src/ColorFragmentShader.fragmentshader" );
+
+	// Get a handle for our "MVP" uniform
+	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+
+	GLuint vertexBuffer;
+	vertexBuffer = setUpObjects();
+	do{
+		// Camera matrix
+		glm::mat4 View       = glm::lookAt(
+									glm::vec3(4,3,-3), // Camera is at (4,3,-3), in World Space
+									glm::vec3(0,0,0), // and looks at the origin
+									glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+							);
+		// Model matrix : an identity matrix (model will be at the origin)
+		glm::mat4 Model      = glm::mat4(1.0f);
+		// Our ModelViewProjection : multiplication of our 3 matrices
+		glm::mat4 MVP        = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Use our shader
+		glUseProgram(programID);
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+		drawTriangle(vertexBuffer);
+
+		// Swap buffers
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+
+	} // Check if the ESC key was pressed or the window was closed
+	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
+		   glfwWindowShouldClose(window) == 0 );
+
+	// Cleanup VBO and shader
+	glDeleteBuffers(1, &vertexBuffer);
+	// glDeleteBuffers(1, &colorbuffer);
+	glDeleteProgram(programID);
+	// glDeleteVertexArrays(1, &VertexArrayID);
+
+	// Close OpenGL window and terminate GLFW
+	glfwTerminate();
+
 	return 0;
 }
