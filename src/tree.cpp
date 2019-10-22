@@ -1,7 +1,6 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/tree.h"
 
-// TODO: change head size
 Tree::Tree(const string& filename)
 {
     load(filename);
@@ -13,7 +12,6 @@ void Tree::loadHierarchy(std::istream& stream) {
     while(stream.good()) {
         stream >> tmp;
         if (trim(tmp)=="ROOT") {
-//            cout << "root" << endl;
             loadJoint(stream, nullptr);
         }
         else if(trim(tmp) == "MOTION")
@@ -34,7 +32,6 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         joint = new Joint();
     }
     joint->joint_name = name->c_str();
-//    cout << joint->joint_name << endl;
     
     std::string tmp;
     Node* node;
@@ -113,12 +110,10 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
                
                tmp_joint->offset = (tmp_joint->offset)*resize;
                (joint->getNode())->resize(tmp_joint->offset);
-            // TODO: modify size
            }
            stream >> tmp;
         }
         else if( tmp == "}" ) {
-//            cout << "end: - " << joint->joint_name << endl;
             return joint;
         }
     }
