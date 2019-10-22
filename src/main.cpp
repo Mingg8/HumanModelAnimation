@@ -1,7 +1,10 @@
 #define GL_SILENCE_DEPRECATION
 
-// #include "../include/camera.h"
+#include "../include/camera.h"
 // #include "../include/tree.h"
+
+// https://github.com/tomdalling/opengl-series/blob/master/source/04_camera/source/tdogl/Camera.h
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,7 +20,7 @@ using namespace glm;
 
 #include <common/shader.hpp>
 
-// static Camera camera;
+static Camera camera;
 
 // static unsigned int width = 700;
 // static unsigned int height = 700;
@@ -77,42 +80,42 @@ using namespace glm;
 // 	glutPostRedisplay();
 // }
 
-void mouseCB(int button, int state, int x, int y)
-{
-	if (state == GLUT_UP)
-	{
-		mouseMovePressed   = false;
-		mouseRotatePressed = false;
-		mouseZoomPressed   = false;
-	}
-	else
-	{
-		if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_SHIFT==glutGetModifiers())
-		{
-			lastX = x;
-			lastY = y;
-			mouseMovePressed   = true;
-			mouseRotatePressed = false;
-			mouseZoomPressed   = false;
-		}
-		else if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_CTRL==glutGetModifiers())
-		{
-			lastZoom = y;
-			mouseMovePressed   = false;
-			mouseRotatePressed = false;
-			mouseZoomPressed   = true;
-		}
-		else if (button==GLUT_LEFT_BUTTON)
-		{
-			camera.beginRotate(x, y);
-			mouseMovePressed   = false;
-			mouseRotatePressed = true;
-			mouseZoomPressed   = false;
-		}
-	}
+// void mouseCB(int button, int state, int x, int y)
+// {
+// 	if (state == GLUT_UP)
+// 	{
+// 		mouseMovePressed   = false;
+// 		mouseRotatePressed = false;
+// 		mouseZoomPressed   = false;
+// 	}
+// 	else
+// 	{
+// 		if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_SHIFT==glutGetModifiers())
+// 		{
+// 			lastX = x;
+// 			lastY = y;
+// 			mouseMovePressed   = true;
+// 			mouseRotatePressed = false;
+// 			mouseZoomPressed   = false;
+// 		}
+// 		else if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_CTRL==glutGetModifiers())
+// 		{
+// 			lastZoom = y;
+// 			mouseMovePressed   = false;
+// 			mouseRotatePressed = false;
+// 			mouseZoomPressed   = true;
+// 		}
+// 		else if (button==GLUT_LEFT_BUTTON)
+// 		{
+// 			camera.beginRotate(x, y);
+// 			mouseMovePressed   = false;
+// 			mouseRotatePressed = true;
+// 			mouseZoomPressed   = false;
+// 		}
+// 	}
 
-	glutPostRedisplay();
-}
+// 	glutPostRedisplay();
+// }
 
 // void motionCB(int x, int y)
 // {
@@ -148,6 +151,39 @@ void mouseCB(int button, int state, int x, int y)
 // 	std::cout << "=========================================" << std::endl;
 // }
 
+void updateCamera(GLFWwindow* window, float secondsElapsed) {
+	const float moveSpeed = 2.0;
+	if (glfwGetKey(window, 'S')) {
+		camera.offsetPosition(secondsElapsed * moveSpeed * -camera.forward());
+	} else if (glfwGetKey(window, 'W')) {
+		camera.offsetPosition(secondsElapsed * moveSpeed * camera.forward());
+	}
+	if (glfwGetKey(window, 'A')) {
+		camera.offsetPosition(secondsElapsed * moveSpeed * -camera.right());
+	} else if (glfwGetKey(window, 'D')) {
+		camera.offsetPosition(secondsElapsed * moveSpeed * camera.right());
+	}
+    if(glfwGetKey(window, 'Z')){
+        camera.offsetPosition(secondsElapsed * moveSpeed * -glm::vec3(0,1,0));
+    } else if(glfwGetKey(window, 'X')){
+        camera.offsetPosition(secondsElapsed * moveSpeed * glm::vec3(0,1,0));
+    }
+
+    //rotate camera based on mouse movement
+    const float mouseSensitivity = 0.1f;
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    camera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
+    glfwSetCursorPos(window, 0, 0); //reset the mouse, so it doesn't go out of the window
+
+    // //increase or decrease field of view based on mouse wheel
+    // const float zoomSensitivity = -0.2f;
+    // float fieldOfView = camera.fieldOfView() + zoomSensitivity * (float)gScrollY;
+    // if(fieldOfView < 5.0f) fieldOfView = 5.0f;
+    // if(fieldOfView > 130.0f) fieldOfView = 130.0f;
+    // camera.setFieldOfView(fieldOfView);
+    // gScrollY = 0;
+}
 
 static const GLfloat g_vertex_triangle[] = {
 	-1.0f, -1.0f, 2.0f,
@@ -212,7 +248,8 @@ int main( void)
 	}
 
 	// Ensure we can capture the escape key being pressed below
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	// glfwSetScrollCallback(window, OnScroll);
 
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
@@ -233,6 +270,7 @@ int main( void)
 	GLuint vertexBuffer;
 	vertexBuffer = setUpObjects();
 	do{
+		updateCamera(window);
 		// Camera matrix
 		glm::mat4 View       = glm::lookAt(
 									glm::vec3(4,3,-3), // Camera is at (4,3,-3), in World Space

@@ -1,6 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 class Camera {
     public:
         Camera ();
@@ -32,6 +35,13 @@ class Camera {
         void multiply(float *q1, float *q2, float *dest);
         void quat_to_matrix(float m[4][4], float q[4]);
         void axis_to_quat(float a[3], float phi, float q[4]);
+
+        const glm::vec3 forward();
+        const glm::vec3 right();
+        const glm::vec3 up();
+
+        void offsetPosition(glm::vec3);
+        void offsetOrientation(float, float);
 
 
     private:
