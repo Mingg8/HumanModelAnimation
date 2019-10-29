@@ -25,7 +25,7 @@ class Tree {
     Joint* getRoot();
     void setUpMyHuman();
     void setUpMyHuman2();
-    void drawMyHuman(Joint* joint, int frame);
+    void drawMyHuman(Joint* joint, int frame, glm::mat4 MVP);
     void load(const std::string& filename);
     MOTION motionData;
     void sendDataToJoint(Joint* joint, int frame, int &data_index);

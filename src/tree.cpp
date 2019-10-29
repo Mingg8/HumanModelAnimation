@@ -38,12 +38,10 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
     const char* head = "head";
     if (strcmp(head, joint->joint_name)) {
         cout << joint->joint_name << endl;
-        node = new BoxNode(body_num, default_size);
+        node = new BoxNode(default_size);
     } else {
-        node = new SphereNode(body_num, default_size);
+        node = new SphereNode(default_size);
     }
-
-    body_num ++;
     if (parent != nullptr) {
         joint->setParent(parent);
     }
@@ -177,17 +175,16 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
     }
 }
 
-void Tree::drawMyHuman(Joint *joint, int frame)
+void Tree::drawMyHuman(Joint *joint, int frame, glm::mat4 mat)
 {
 //    if (joint->joint_name != nullptr) cout << joint->joint_name << endl;
-    if (joint->joint_name != "EndSite") (joint->getNode())->draw();
+    if (joint->joint_name != "EndSite") (joint->getNode())->draw(mat);
     vector<Joint*> children_vec = joint->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {
+        glm::mat4 new_mat;
         Joint *j = children_vec[i];
-        glPushMatrix();
-        j->transform(frame);
-        drawMyHuman(children_vec[i], frame);
-        glPopMatrix();
+        new_mat = mat * j->transform(frame);
+        drawMyHuman(children_vec[i], frame, new_mat);
     }
 }
 
