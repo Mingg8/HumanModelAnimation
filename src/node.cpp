@@ -1,28 +1,56 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/node.h"
 
-Node::Node(int _num)
-{
-    num = _num;
-}
+static const GLfloat gl_vertex_box[] = {
+	-1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f
+};
 
-int Node::getId()
-{
-    return num;
-}
-
-void Node::draw() {
+void Node::draw(glm::mat4 mat) {
 }
 
 void Node::resize(Vector3d offset) {}
 
-SphereNode::SphereNode(int the_num, double r) {
-    num = the_num;
+SphereNode::SphereNode(double r) {
     radius = r;
     type = NodeType::SPHERE;
 }
 
-void SphereNode::draw() {
+void SphereNode::draw(glm::mat4 mat) {
     glPushMatrix();
     glTranslated(offset(0)/2.0, offset(1)/2.0, offset(2)/2.0);
     GLUquadric *sphere;
@@ -36,14 +64,13 @@ void SphereNode::resize(Vector3d _offset) {
     radius = _offset.norm()/2.0;
 }
 
-CylinderNode::CylinderNode(int the_num, double r, double l) {
-    num = the_num;
+CylinderNode::CylinderNode(double r, double l) {
     radius = r;
     length = l;
     type = NodeType::CYLINDER;
 }
 
-void CylinderNode::draw() {
+void CylinderNode::draw(glm::mat4 mat) {
     GLUquadricObj *quadratic;
     quadratic = gluNewQuadric();
     gluCylinder(quadratic, radius, radius, length, 32, 32);
@@ -53,7 +80,7 @@ void CylinderNode::resize(Vector3d offset) {
     
 }
 
-BoxNode::BoxNode(int the_num, double _default) {
+BoxNode::BoxNode(double _default) {
     minX = -_default;
     maxX = _default;
     minY = -_default;
@@ -61,47 +88,25 @@ BoxNode::BoxNode(int the_num, double _default) {
     minZ = -_default;
     maxZ = _default;
     
-    num = the_num;
     type = NodeType::BOX;
+
+    GLuint VertexArrayID;
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
+
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_box), gl_vertex_box,
+        GL_STATIC_DRAW);
 }
 
-void BoxNode::draw() {
-    glBegin(GL_POLYGON);
-    glVertex3d(minX, minY, maxZ);
-    glVertex3d(maxX, minY, maxZ);
-    glVertex3d(maxX, maxY, maxZ);
-    glVertex3d(minX, maxY, maxZ);
-    
-    glBegin(GL_POLYGON);
-    glVertex3d(minX, maxY, maxZ);
-    glVertex3d(maxX, maxY, maxZ);
-    glVertex3d(maxX, maxY, minZ);
-    glVertex3d(minX, maxY, minZ);
-    
-    glBegin(GL_POLYGON);
-    glVertex3d(minX, maxY, minZ);
-    glVertex3d(minX, maxY, maxZ);
-    glVertex3d(minX, minY, maxZ);
-    glVertex3d(minX, minY, minZ);
-    
-    glBegin(GL_POLYGON);
-    glVertex3d(minX, minY, minZ);
-    glVertex3d(minX, maxY, minZ);
-    glVertex3d(maxX, maxY, minZ);
-    glVertex3d(maxX, minY, minZ);
-    
-    glBegin(GL_POLYGON);
-    glVertex3d(maxX, minY, minZ);
-    glVertex3d(maxX, maxY, minZ);
-    glVertex3d(maxX, maxY, maxZ);
-    glVertex3d(maxX, minY, maxZ);
-    
-    glBegin(GL_POLYGON);
-    glVertex3d(maxX, minY, maxZ);
-    glVertex3d(maxX, minY, minZ);
-    glVertex3d(minX, minY, minZ);
-    glVertex3d(minX, minY, maxZ);
-    glEnd();
+void BoxNode::draw(glm::mat4 mat) {
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);	
+	glDrawArrays(GL_TRIANGLES, 0, 12*3);
+
+	glDisableVertexAttribArray(0);
 }
 
 void BoxNode::resize(Vector3d offset) {
