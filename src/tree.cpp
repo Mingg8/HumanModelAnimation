@@ -37,7 +37,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
     Node* node;
     const char* head = "head";
     if (strcmp(head, joint->joint_name)) {
-        cout << joint->joint_name << endl;
+        // cout << joint->joint_name << endl;
         node = new BoxNode(default_size);
     } else {
         node = new SphereNode(default_size);
@@ -166,25 +166,39 @@ void Tree::loadMotion(std::istream& stream)
 
 void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
     for (int i=0; i<joint->num_channels; i++)
-        joint->motion.push_back(
-            motionData.data(frame,data_index+i));
+        joint->motion.push_back(motionData.data(frame,data_index+i));
     data_index = data_index + joint->num_channels;
-    vector<Joint*> children = joint->getChildren();
+    vector<Joint*> children = joint->getChildren(); 
     for (int i=0; i<children.size(); i++) {
         sendDataToJoint(children[i], frame, data_index);
     }
 }
 
-void Tree::drawMyHuman(Joint *joint, int frame, glm::mat4 mat)
+void Tree::drawMyHuman(Joint *joint, int frame, GLuint MatrixID, glm::mat4 mat)
 {
-//    if (joint->joint_name != nullptr) cout << joint->joint_name << endl;
+    if (joint->joint_name != nullptr) {
+        cout << "draw - " << joint->joint_name << endl;
+    }
+
+    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mat[0][0]);
     if (joint->joint_name != "EndSite") (joint->getNode())->draw(mat);
     vector<Joint*> children_vec = joint->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {
         glm::mat4 new_mat;
         Joint *j = children_vec[i];
         new_mat = mat * j->transform(frame);
-        drawMyHuman(children_vec[i], frame, new_mat);
+
+        // // debugging
+        // glm::mat4 trans = j->transform(frame);
+        // for (int i=0; i< 4; i++) {
+        //     for (int j=0; j<4; j++) {
+        //         cout << trans[i][j] << "   ";
+        //     }
+        //     cout << endl;
+        // }
+        // cout <<  endl;
+
+        drawMyHuman(children_vec[i], frame, MatrixID, new_mat);
     }
 }
 

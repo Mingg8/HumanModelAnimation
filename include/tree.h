@@ -16,7 +16,7 @@ typedef struct
     unsigned int num_frames;              // number of frames
     unsigned int num_motion_channels = 0; // number of motion channels
     MatrixXd data;                   // motion float data array
-    double frame_time;
+    double frame_time = 0.001;
 } MOTION;
 
 class Tree {
@@ -25,7 +25,7 @@ class Tree {
     Joint* getRoot();
     void setUpMyHuman();
     void setUpMyHuman2();
-    void drawMyHuman(Joint* joint, int frame, glm::mat4 MVP);
+    void drawMyHuman(Joint* joint, int frame, GLuint MatrixID, glm::mat4 MVP);
     void load(const std::string& filename);
     MOTION motionData;
     void sendDataToJoint(Joint* joint, int frame, int &data_index);
