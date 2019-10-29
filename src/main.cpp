@@ -1,9 +1,10 @@
 #define GL_SILENCE_DEPRECATION
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <iostream>
 #include <memory>
+#include <chrono>
+#include <thread>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -25,8 +26,47 @@ int frame = 0;
 
 double gScrollY = 0;
 
+static const GLfloat gl_vertex_box[] = {
+	-1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f
+};
+
 void updateCamera(GLFWwindow* window, float secondsElapsed) {
-	const float moveSpeed = 0.02;
+	const float moveSpeed = 0.2;
 	if (glfwGetKey(window, 'S')) {
 		camera.offsetPosition(secondsElapsed * moveSpeed * -camera.forward());
 	} else if (glfwGetKey(window, 'W')) {
@@ -43,6 +83,16 @@ void updateCamera(GLFWwindow* window, float secondsElapsed) {
         camera.offsetPosition(secondsElapsed * moveSpeed * glm::vec3(0,1,0));
     }
 
+
+    //rotate camera based on mouse movement
+    const float mouseSensitivity = 0.05f;
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    camera.offsetOrientation(mouseSensitivity * (float)mouseY,
+		mouseSensitivity * (float)mouseX);
+    glfwSetCursorPos(window, 0, 0);
+	//reset the mouse, so it doesn't go out of the window
+
     //increase or decrease field of view based on mouse wheel
     const float zoomSensitivity = -0.2f;
     float fieldOfView = camera.fieldOfView() + zoomSensitivity * (float)gScrollY;
@@ -52,6 +102,19 @@ void updateCamera(GLFWwindow* window, float secondsElapsed) {
     gScrollY = 0;
 }
 
+GLuint setUpObjects() {
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	GLuint vertexbuffer;
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_box), gl_vertex_box, GL_STATIC_DRAW);
+	return vertexbuffer;
+}
+
+
 void drawTriangle(GLuint vertexBuffer) {
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -59,6 +122,11 @@ void drawTriangle(GLuint vertexBuffer) {
 	glDrawArrays(GL_TRIANGLES, 0, 12*3);
 
 	glDisableVertexAttribArray(0);
+}
+
+// records how far the y axis has been scrolled
+void OnScroll(GLFWwindow* window, double deltaX, double deltaY) {
+    gScrollY += deltaY;
 }
 
 int setUpGl() {
@@ -96,9 +164,9 @@ int setUpGl() {
 		return -1;
 	}
 
-	// // Ensure we can capture the escape key being pressed below
-	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	// glfwSetScrollCallback(window, OnScroll);
+	// Ensure we can capture the escape key being pressed below
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetScrollCallback(window, OnScroll);
 
 	glClearColor(1.0f, 1.0f, 1.4f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -114,10 +182,21 @@ int main( void)
 		cout << "error!" << endl;
 	}
 
-	const string filename = "../MotionData/Trial001.bvh";
+	const string filename = "../MotionData/Trial000.bvh";
 	std::unique_ptr<Tree> human = std::make_unique<Tree>(filename);
+	int sleep_time = (human->motionData.frame_time)*1000;
+
+	// Debugging time
+	double time = 0;
+	auto start = chrono::steady_clock::now();
+
+	GLuint vertexBuffer;
+	vertexBuffer = setUpObjects();
+
 	// TODO: set objects
-	GLuint programID = LoadShaders( "../src/TransformVertexShader.vertexshader", "../src/ColorFragmentShader.fragmentshader" );
+	GLuint programID = LoadShaders(
+		"../src/TransformVertexShader.vertexshader",
+		"../src/ColorFragmentShader.fragmentshader" );
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
 	double lastTime = glfwGetTime();
@@ -125,25 +204,30 @@ int main( void)
 		double thisTime = glfwGetTime();
 		updateCamera(window, (float)(thisTime-lastTime));
 
-		// Model matrix : an identity matrix (model will be at the origin)
 		glm::mat4 Model      = glm::mat4(1.0f);
-		glm::mat4 MVP        = camera.matrix() * Model; // Remember, matrix multiplication is the other way around
+		glm::mat4 MVP        = camera.matrix() * Model;
+    	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Use our shader
 		glUseProgram(programID);
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		// glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-    	human->drawMyHuman(human->getRoot(), frame, MVP);
+    	human->drawMyHuman(human->getRoot(), frame, MatrixID, MVP);
+		// drawTriangle(vertexBuffer);
 		frame += 1;
 
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
-		// TODO: sleep
+		this_thread::sleep_for(chrono::milliseconds(sleep_time));
+		time += sleep_time/1000.0;
+		auto now = chrono::steady_clock::now();
+		chrono::duration<double> diff = now - start;
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
