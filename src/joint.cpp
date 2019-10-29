@@ -75,34 +75,50 @@ void Joint::rotation2angleaxis(Matrix4d m, double *aa)
     }
 }
 
-void Joint::transform(int frame)
+glm::mat4 Joint::transform(int frame)
 {
-    glTranslated(offset(0), offset(1), offset(2));
-    // glRotated(p2j_aa[0], p2j_aa[1], p2j_aa[2], p2j_aa[3]);
-     rotate(frame);
-    // glTranslated(j2c_trans[0], j2c_trans[1], j2c_trans[2]);
-    // glRotated(j2c_aa[0], j2c_aa[1], j2c_aa[2], j2c_aa[3]);
+    glm::mat4 mat = glm::mat4(1.0f);
+    mat[0][3] = offset(0);
+    mat[1][3] = offset(1);
+    mat[2][3] = offset(2);
+
+    mat = mat * rotate(frame);
+    return mat;
 }
 
 
-void Joint::rotate(int frame)
+glm::mat4 Joint::rotate(int frame)
 {
+    Matrix4d mat;
     for(int i=0; i<num_channels; i++) {
         double angle = motion[(frame-1)*num_channels+i];
         if (channels_order[i] == DIR::Xrot) {
-            glRotated(angle, 1, 0, 0);
+            mat.block(0, 0, 3, 3) = mat.block(0, 0, 3, 3)
+                * AngleAxisd(angle, Vector3d(1, 0, 0));
         } else if (channels_order[i] == DIR::Yrot) {
-            glRotated(angle, 0, 1, 0);
+            mat.block(0, 0, 3, 3) = mat.block(0, 0, 3, 3)
+                * AngleAxisd(angle, Vector3d(0, 1, 0));
         } else if (channels_order[i] == DIR::Zrot) {
-            glRotated(angle, 0, 0, 1);
+            mat.block(0, 0, 3, 3) = mat.block(0, 0, 3, 3)
+                * AngleAxisd(angle, Vector3d(0, 0, 1));
         } else if (channels_order[i] == DIR::Xtrans) {
-            glTranslated(angle, 0, 0);
+            mat.block(0, 3, 3, 1) = mat.block(0, 3, 3, 1)
+                + Vector3d(angle, 0, 0);
         } else if (channels_order[i] == DIR::Ytrans) {
-            glTranslated(0, angle, 0);
+            mat.block(0, 3, 3, 1) = mat.block(0, 3, 3, 1)
+                + Vector3d(0, angle, 0);
         } else if (channels_order[i] == DIR::Ztrans) {
-            glTranslated(0, 0, angle);
+            mat.block(0, 3, 3, 1) = mat.block(0, 3, 3, 1)
+                + Vector3d(0, 0, angle);
         }
     }
+    glm::mat4 glm_mat;
+    for (int i = 0; i < 4; i++) {
+        for (int j=0; j < 4; j++) {
+            glm_mat[i][j] = mat(i, j);
+        }
+    }
+    return glm_mat;
 }
 
 void Joint::addToChannel(Joint::DIR channel) {
