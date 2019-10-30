@@ -1,7 +1,7 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/node.h"
 
-static const GLfloat gl_vertex_box[] = {
+static GLfloat gl_vertex_box[] = {
 	-1.0f,-1.0f,-1.0f,
     -1.0f,-1.0f, 1.0f,
     -1.0f, 1.0f, 1.0f,
@@ -96,6 +96,9 @@ BoxNode::BoxNode(double _default) {
 
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    for (int i=0; i<108; i++) {
+        gl_vertex_box[i] = 0.1 * gl_vertex_box[i];
+    }
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_box), gl_vertex_box,
         GL_STATIC_DRAW);
 }

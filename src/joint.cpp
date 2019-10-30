@@ -78,11 +78,37 @@ void Joint::rotation2angleaxis(Matrix4d m, double *aa)
 glm::mat4 Joint::transform(int frame)
 {
     glm::mat4 mat = glm::mat4(1.0f);
+    cout << "1" << endl;
+    for (int i=0; i< 4; i++) {
+        for (int j=0; j<4; j++) {
+            cout << mat[i][j] << "   ";
+        }
+        cout << endl;
+    }
+    cout <<  endl;
+
     mat[0][3] = offset(0);
     mat[1][3] = offset(1);
     mat[2][3] = offset(2);
+    cout << "2" << endl;
+    for (int i=0; i< 4; i++) {
+        for (int j=0; j<4; j++) {
+            cout << mat[i][j] << "   ";
+        }
+        cout << endl;
+    }
+    cout <<  endl;
 
-    mat = mat * rotate(frame);
+    // mat = mat * rotate(frame);
+    // // debugging
+    // cout << "3" << endl;
+    // for (int i=0; i< 4; i++) {
+    //     for (int j=0; j<4; j++) {
+    //         cout << mat[i][j] << "   ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout <<  endl;
     return mat;
 }
 
@@ -90,6 +116,7 @@ glm::mat4 Joint::transform(int frame)
 glm::mat4 Joint::rotate(int frame)
 {
     Matrix4d mat;
+    mat.setIdentity();
     for(int i=0; i<num_channels; i++) {
         double angle = motion[(frame-1)*num_channels+i];
         if (channels_order[i] == DIR::Xrot) {
