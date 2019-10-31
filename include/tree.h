@@ -11,6 +11,7 @@
 #include <GL/glut.h>
 #endif
 
+// TODO: modify typedef struct -> struct
 typedef struct
 {
     unsigned int num_frames;              // number of frames
@@ -21,14 +22,17 @@ typedef struct
 
 class Tree {
   public:
-    Tree(const string& filename);
+	enum Mode {BVH, IK};
+    Tree(Mode mode, const string _file = "MotionData/Trial000.bvh");
+    
     Joint* getRoot();
     void setUpMyHuman();
     void setUpMyHuman2();
-    void drawMyHuman(Joint* joint, int frame);
+    void drawMyHuman(Joint* joint, int frame = -1);
     void load(const std::string& filename);
     MOTION motionData;
     void sendDataToJoint(Joint* joint, int frame, int &data_index);
+    Mode mode;
 
   private:
     Joint* loadJoint(std::istream& stream, Joint* parent);

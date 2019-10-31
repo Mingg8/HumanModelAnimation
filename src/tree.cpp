@@ -1,13 +1,17 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/tree.h"
 
-Tree::Tree(const string& filename)
-{
-    load(filename);
+Tree::Tree(Mode _mode, const string _file) {
+    mode = _mode;
+    if (mode == BVH) {
+        load(_file);
+    } else {
+    // Load the skeleton only
+        load("MotionData/Trial000.bvh");
+    }
 }
 
 void Tree::loadHierarchy(std::istream& stream) {
-    std::cout << "load hierarchy" << endl;
     std::string tmp;
     while(stream.good()) {
         stream >> tmp;
@@ -20,7 +24,6 @@ void Tree::loadHierarchy(std::istream& stream) {
 }
 
 Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
-    // load joint name
     std::string* name = new std::string;
     stream >> *name;
 
@@ -37,7 +40,6 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
     Node* node;
     const char* head = "head";
     if (strcmp(head, joint->joint_name)) {
-        cout << joint->joint_name << endl;
         node = new BoxNode(body_num, default_size);
     } else {
         node = new SphereNode(body_num, default_size);
@@ -48,13 +50,11 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         joint->setParent(parent);
     }
     joint->setNode(node);
-
     
     while (stream.good()) {
         stream >> tmp;
         tmp = trim(tmp);
-        
-        // loading channels
+
         char c = tmp.at(0);
         if (c=='X' || c == 'Y' || c == 'Z') {
             if (tmp == "Xposition")
@@ -95,7 +95,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         else if( tmp == "End" )
         {
             // loading End Site joint
-            stream >> tmp >> tmp; // Site {
+            stream >> tmp >> tmp;
             Joint* tmp_joint = new Joint;
 
             tmp_joint->joint_name = "EndSite";
@@ -122,7 +122,6 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
 void Tree::loadMotion(std::istream& stream)
 {
     std::string tmp;
-    cout << "load motion" << endl;
     while( stream.good() )
     {
         stream >> tmp;
@@ -140,7 +139,7 @@ void Tree::loadMotion(std::istream& stream)
 
             motionData.frame_time = frame_time;
             int num_frames   = motionData.num_frames;
-            int num_channels = motionData.num_motion_channels; // total channels
+            int num_channels = motionData.num_motion_channels;
             // creating motion data array
             motionData.data.resize(num_frames, num_channels);
             // foreach frame read and store floats
@@ -167,6 +166,8 @@ void Tree::loadMotion(std::istream& stream)
 }
 
 void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
+    joint->channel_start_idx = data_index;
+    cout <<joint->joint_name <<  ", index: " << data_index << endl;
     for (int i=0; i<joint->num_channels; i++)
         joint->motion.push_back(
             motionData.data(frame,data_index+i));
@@ -179,8 +180,9 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
 
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
-//    if (joint->joint_name != nullptr) cout << joint->joint_name << endl;
-    if (joint->joint_name != "EndSite") (joint->getNode())->draw();
+    if (joint->joint_name != "EndSite") {
+        (joint->getNode())->draw();
+    }
     vector<Joint*> children_vec = joint->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i];
@@ -190,7 +192,6 @@ void Tree::drawMyHuman(Joint *joint, int frame)
         glPopMatrix();
     }
 }
-
 Joint* Tree::getRoot()
 {
     return root_joint;
@@ -204,10 +205,11 @@ void Tree::load(const std::string& filename)
     if(file.is_open()) {
         std::string line;
         while(file.good()) {
-            cout << "loaded" << endl;
             file >> line;
             if (trim(line) == "HIERARCHHY")
-                cout << "hiee" << endl;
+                cout << "hierarchy" << endl;
+                // TODO: error occurs if this cout is erased
+                //      memory problem!!!! IDK :( :(
                 loadHierarchy(file);
             break;
         }
