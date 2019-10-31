@@ -18,7 +18,7 @@ void Tree::loadHierarchy(std::istream& stream) {
         if (trim(tmp)=="ROOT") {
             loadJoint(stream, nullptr);
         }
-        else if(trim(tmp) == "MOTION")
+        else if(mode == BVH && trim(tmp) == "MOTION")
             loadMotion(stream);
     }
 }
@@ -84,6 +84,9 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
             stream >> joint->num_channels;
             // adding to motiondata
             motionData.num_motion_channels += joint->num_channels;
+            joint->current_angle.resize(joint->num_channels);
+            (joint->current_angle).setZero();
+
             
         }
         else if( tmp == "JOINT" )
@@ -180,7 +183,9 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
 
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
+    cout << "start drawing" << endl;
     if (joint->joint_name != "EndSite") {
+        cout << joint->joint_name << endl;
         (joint->getNode())->draw();
     }
     vector<Joint*> children_vec = joint->getChildren();

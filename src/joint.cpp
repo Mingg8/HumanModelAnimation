@@ -4,7 +4,6 @@
 Joint::Joint()
 {
     joint_name = "";
-    current_angle.setZero();
 }
 
 void Joint::setParent(Joint *the_parent) {
@@ -66,7 +65,9 @@ void Joint::rotation2angleaxis(Matrix4d m, double *aa)
 
 void Joint::transform(int frame)
 {
+    cout << "a" << endl;
     glTranslated(offset(0), offset(1), offset(2));
+    cout << "a" << endl;
     rotate(frame);
 }
 
@@ -77,11 +78,13 @@ void Joint::rotate(int frame)
         if (frame == -1) {
             // controling manually
             angle = current_angle[i];
+            cout << "angle: " << angle << endl;
         } else {
             // load bvh
             angle = motion[(frame-1)*num_channels+i];
         }
         if (channels_order[i] == DIR::Xrot) {
+    cout << "a2" << endl;
             glRotated(angle, 1, 0, 0);
         } else if (channels_order[i] == DIR::Yrot) {
             glRotated(angle, 0, 1, 0);
@@ -93,7 +96,9 @@ void Joint::rotate(int frame)
             glTranslated(0, angle, 0);
         } else if (channels_order[i] == DIR::Ztrans) {
             glTranslated(0, 0, angle);
+    cout << "a2" << endl;
         }
+    cout << "a2" << endl;
     }
 }
 
