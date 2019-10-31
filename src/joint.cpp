@@ -1,21 +1,10 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/joint.h"
 
-
-Joint::Joint(Matrix4d the_parent_offset, Matrix4d the_child_offset)
+Joint::Joint()
 {
-    parent_to_joint = the_parent_offset;
-    joint_to_child = the_child_offset;
-    
-    rotation2angleaxis(parent_to_joint, p2j_aa);
-    rotation2angleaxis(joint_to_child, j2c_aa);
-    
-    for (size_t i=0; i<3; i++) {
-        p2j_trans[i] = the_parent_offset(i,3);
-        j2c_trans[i] = the_child_offset(i,3);
-    }
-    node = nullptr;
-    joint_name = nullptr;
+    joint_name = "";
+    current_angle.setZero();
 }
 
 void Joint::setParent(Joint *the_parent) {
@@ -78,17 +67,20 @@ void Joint::rotation2angleaxis(Matrix4d m, double *aa)
 void Joint::transform(int frame)
 {
     glTranslated(offset(0), offset(1), offset(2));
-    // glRotated(p2j_aa[0], p2j_aa[1], p2j_aa[2], p2j_aa[3]);
-     rotate(frame);
-    // glTranslated(j2c_trans[0], j2c_trans[1], j2c_trans[2]);
-    // glRotated(j2c_aa[0], j2c_aa[1], j2c_aa[2], j2c_aa[3]);
+    rotate(frame);
 }
-
 
 void Joint::rotate(int frame)
 {
     for(int i=0; i<num_channels; i++) {
-        double angle = motion[(frame-1)*num_channels+i];
+        double angle;
+        if (frame == -1) {
+            // controling manually
+            angle = current_angle[i];
+        } else {
+            // load bvh
+            angle = motion[(frame-1)*num_channels+i];
+        }
         if (channels_order[i] == DIR::Xrot) {
             glRotated(angle, 1, 0, 0);
         } else if (channels_order[i] == DIR::Yrot) {
