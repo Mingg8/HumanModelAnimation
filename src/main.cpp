@@ -22,7 +22,7 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 
 static bool fullScreen = false;
 
-static Tree* human;
+unique_ptr<Tree> human;
 int frame = 0;
 
 void reshape(int w, int h)
@@ -45,8 +45,9 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    human->drawMyHuman(human->getRoot(), frame);
-//    cout << "frame: " << frame << endl;
+	if (human->mode == Tree::Mode::BVH)
+    	human->drawMyHuman(human->getRoot(), frame);
+	else human->drawMyHuman(human->getRoot());
     glPopMatrix();
 	glutSwapBuffers();
 }
@@ -80,7 +81,8 @@ void mouseCB(int button, int state, int x, int y)
 	}
 	else
 	{
-		if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_SHIFT==glutGetModifiers())
+		if (button==GLUT_LEFT_BUTTON
+			&& GLUT_ACTIVE_SHIFT==glutGetModifiers())
 		{
 			lastX = x;
 			lastY = y;
@@ -88,7 +90,8 @@ void mouseCB(int button, int state, int x, int y)
 			mouseRotatePressed = false;
 			mouseZoomPressed   = false;
 		}
-		else if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_CTRL==glutGetModifiers())
+		else if (button==GLUT_LEFT_BUTTON 
+			&& GLUT_ACTIVE_CTRL==glutGetModifiers())
 		{
 			lastZoom = y;
 			mouseMovePressed   = false;
@@ -148,8 +151,18 @@ int main(int argc, char** argv)
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Viewer");
     
-	const string filename = "MotionData/Trial000.bvh";
-    human = new Tree(filename);	
+	const string filename = "MotionData/Trial001.bvh";
+
+	// TODO: Setup Mode by keyboard input
+
+	// if (something) {
+	// 	human = make_unique<Tree>(filename, );
+	// } else {
+	// 	human = make_unique<Tree>()
+	// }
+	human = make_unique<Tree>(Tree::Mode::BVH, filename);
+	
+    
 	manual();
 
 	camera.resize(width, height);
@@ -159,7 +172,6 @@ int main(int argc, char** argv)
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	glutDisplayFunc(display);
-//    glutTimerFunc(1000, move, 1);
     glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
 	glutKeyboardFunc(keyboardCB);
 	glutReshapeFunc(reshape);
