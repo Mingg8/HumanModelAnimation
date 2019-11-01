@@ -4,6 +4,7 @@
 Joint::Joint()
 {
     joint_name = "";
+    parent = nullptr;
 }
 
 void Joint::setParent(Joint *the_parent) {
@@ -65,9 +66,7 @@ void Joint::rotation2angleaxis(Matrix4d m, double *aa)
 
 void Joint::transform(int frame)
 {
-    cout << "a" << endl;
     glTranslated(offset(0), offset(1), offset(2));
-    cout << "a" << endl;
     rotate(frame);
 }
 
@@ -84,7 +83,6 @@ void Joint::rotate(int frame)
             angle = motion[(frame-1)*num_channels+i];
         }
         if (channels_order[i] == DIR::Xrot) {
-    cout << "a2" << endl;
             glRotated(angle, 1, 0, 0);
         } else if (channels_order[i] == DIR::Yrot) {
             glRotated(angle, 0, 1, 0);
@@ -96,9 +94,7 @@ void Joint::rotate(int frame)
             glTranslated(0, angle, 0);
         } else if (channels_order[i] == DIR::Ztrans) {
             glTranslated(0, 0, angle);
-    cout << "a2" << endl;
         }
-    cout << "a2" << endl;
     }
 }
 
@@ -106,3 +102,34 @@ void Joint::addToChannel(Joint::DIR channel) {
     channels_order.push_back(channel);
 }
 
+Matrix4d Joint::getSE3() {
+    Matrix4d mat;
+    mat.setIdentity();
+    mat(0, 3) = offset(0);
+    mat(1, 3) = offset(1);
+    mat(2, 3) = offset(2);
+
+    for (int i = 0; i < num_channels; i++) {
+        double angle = current_angle[i];
+        Matrix4d tmp;
+        tmp.setIdentity();
+        if (channels_order[i] == DIR::Xrot) {
+            tmp.block(0, 0, 3, 3) << 1, 0, 0,
+                        0, cos(angle), -sin(angle),
+                        0, sin(angle), cos(angle);
+            mat = mat * tmp;
+            
+        } else if (channels_order[i] == DIR::Yrot) {
+            tmp.block(0, 0, 3, 3) << cos(angle), 0, sin(angle),
+                        0, 1, 0,
+                        -sin(angle), 0, cos(angle);
+            mat = mat * tmp;
+        } else if (channels_order[i] == DIR::Zrot) {
+            tmp.block(0, 0, 3, 3) << cos(angle), -sin(angle), 0,
+                        sin(angle), cos(angle), 0,
+                        0, 0, 1;
+            mat = mat * tmp;
+        }
+    }
+    return mat;
+}

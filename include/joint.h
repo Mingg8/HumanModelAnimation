@@ -32,6 +32,7 @@ class Joint
    const char* joint_name;
    Vector3d offset;
    void setOffset(Vector3d offset);
+   Matrix4d getSE3();
 
    // channel
    enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
