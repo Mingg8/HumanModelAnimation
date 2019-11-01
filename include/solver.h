@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <tree.h>
+#include <stack>
 
 using namespace Eigen;
 
