@@ -11,14 +11,14 @@
 #include <GL/glut.h>
 #endif
 
-// TODO: modify typedef struct -> struct
-typedef struct
+struct MOTION
 {
     unsigned int num_frames;              // number of frames
     unsigned int num_motion_channels = 0; // number of motion channels
     MatrixXd data;                   // motion float data array
-    double frame_time;
-} MOTION;
+    double frame_time = 0.05;
+};
+
 
 class Tree {
   public:
@@ -35,7 +35,7 @@ class Tree {
     Mode mode;
 
   private:
-    Joint* loadJoint(std::istream& stream, Joint* parent);
+    void loadJoint(std::istream& stream, Joint* parent);
     void loadMotion(std::istream& stream);
     void loadHierarchy(std::istream& stream);
 

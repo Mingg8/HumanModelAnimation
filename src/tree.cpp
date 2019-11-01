@@ -23,7 +23,7 @@ void Tree::loadHierarchy(std::istream& stream) {
     }
 }
 
-Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
+void Tree::loadJoint(std::istream& stream, Joint* parent) {
     std::string* name = new std::string;
     stream >> *name;
 
@@ -33,6 +33,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
         joint = root_joint;
     } else {
         joint = new Joint();
+        joint->setParent(parent);
     }
     joint->joint_name = name->c_str();
     
@@ -46,9 +47,6 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
     }
 
     body_num ++;
-    if (parent != nullptr) {
-        joint->setParent(parent);
-    }
     joint->setNode(node);
     
     while (stream.good()) {
@@ -85,15 +83,12 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
             // adding to motiondata
             motionData.num_motion_channels += joint->num_channels;
             joint->current_angle.resize(joint->num_channels);
-            (joint->current_angle).setZero();
-
-            
+            (joint->current_angle).setZero();            
         }
         else if( tmp == "JOINT" )
         {
             // loading child joint and setting this as a parent
-            Joint* tmp_joint = loadJoint(stream, joint);
-
+            loadJoint(stream, joint);
         }
         else if( tmp == "End" )
         {
@@ -117,7 +112,7 @@ Joint* Tree::loadJoint(std::istream& stream, Joint* parent) {
            stream >> tmp;
         }
         else if( tmp == "}" ) {
-            return joint;
+            return;
         }
     }
 }
@@ -170,7 +165,6 @@ void Tree::loadMotion(std::istream& stream)
 
 void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
     joint->channel_start_idx = data_index;
-    cout <<joint->joint_name <<  ", index: " << data_index << endl;
     for (int i=0; i<joint->num_channels; i++)
         joint->motion.push_back(
             motionData.data(frame,data_index+i));
@@ -183,9 +177,7 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
 
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
-    cout << "start drawing" << endl;
     if (joint->joint_name != "EndSite") {
-        cout << joint->joint_name << endl;
         (joint->getNode())->draw();
     }
     vector<Joint*> children_vec = joint->getChildren();
