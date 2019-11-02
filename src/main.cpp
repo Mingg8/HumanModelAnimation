@@ -2,6 +2,7 @@
 
 #include "../include/camera.h"
 #include "../include/tree.h"
+#include "../include/solver.h"
 #include <iostream>
 #include <memory>
 #ifdef __APPLE__
@@ -48,6 +49,7 @@ void display()
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
     if (human->mode == Tree::Mode::BVH) {
+        // to track the root (only translation)
         vector<double> vec = (human->getRoot())->motion;
         int num_channels = (human->getRoot())->num_channels;
         glTranslated(-vec[(frame-1)*num_channels],
@@ -55,7 +57,11 @@ void display()
                      -vec[(frame-1)*num_channels+2]);
     	human->drawMyHuman(human->getRoot(), frame);
     }
-	else human->drawMyHuman(human->getRoot());
+    else {
+        // designate moving joint num
+        calculateJacobian(human->motionData, (human->joints)[5]);
+        human->drawMyHuman(human->getRoot());
+    }
     glPopMatrix();
 	glutSwapBuffers();
 }
@@ -168,7 +174,7 @@ int main(int argc, char** argv)
 	// } else {
 	// 	human = make_unique<Tree>()
 	// }
-	human = make_unique<Tree>(Tree::Mode::BVH, filename);
+	human = make_unique<Tree>(Tree::Mode::IK, filename);
 	
     
 	manual();
