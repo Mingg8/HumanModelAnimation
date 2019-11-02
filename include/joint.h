@@ -15,6 +15,7 @@
 using namespace std;
 using namespace Eigen;
 
+namespace joint {
 class Joint
 {
  public:
@@ -41,6 +42,7 @@ class Joint
    int channel_start_idx;
    vector<double> motion;
    VectorXd current_angle;
+    vector<DIR> channels_order;
     
  private:
    int joint_num;
@@ -53,5 +55,5 @@ class Joint
    Node* node;
    Joint* parent;
    std::vector<Joint*> children;
-   vector<DIR> channels_order;
 };
+}

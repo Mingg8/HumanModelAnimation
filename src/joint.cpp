@@ -1,6 +1,6 @@
 #define GL_SILENCE_DEPRECATION
-#include "../include/joint.h"
-
+#include "../include/solver.h"
+namespace joint {
 Joint::Joint()
 {
     joint_name = "";
@@ -132,4 +132,5 @@ Matrix4d Joint::getSE3() {
         }
     }
     return mat;
+}
 }
