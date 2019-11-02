@@ -1,7 +1,9 @@
 #include <Eigen/Dense>
-#include <tree.h>
+#include "../include/tree.h"
+#include "../include/joint.h"
 #include <stack>
 
 using namespace Eigen;
+using joint::Joint;
 
-MatrixXd calculateJacobian(Tree& tree);
+MatrixXd calculateJacobian(struct MOTION, Joint *joint);
