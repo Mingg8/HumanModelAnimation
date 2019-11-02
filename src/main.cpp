@@ -58,8 +58,7 @@ void display()
     	human->drawMyHuman(human->getRoot(), frame);
     }
     else {
-        // designate moving joint num
-        calculateJacobian(human->motionData, (human->joints)[5]);
+//        calculateJacobian(human->motionData, (human->joints)[5]);
         human->drawMyHuman(human->getRoot());
     }
     glPopMatrix();
@@ -165,7 +164,7 @@ int main(int argc, char** argv)
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Viewer");
     
-	const string filename = "MotionData/Trial002.bvh";
+	const string filename = "../MotionData/Trial002.bvh";
 
 	// TODO: Setup Mode by keyboard input
 
@@ -176,7 +175,6 @@ int main(int argc, char** argv)
 	// }
 	human = make_unique<Tree>(Tree::Mode::IK, filename);
 	
-    
 	manual();
 
 	camera.resize(width, height);

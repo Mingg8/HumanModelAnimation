@@ -16,7 +16,7 @@ Tree::Tree(Mode _mode, const string _file) {
         load(_file);
     } else {
     // Load the skeleton only
-        load("MotionData/Trial000.bvh");
+        load("../MotionData/Trial000.bvh");
         int i = 0;
         setVector(root_joint, i);
     }
