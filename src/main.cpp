@@ -10,6 +10,8 @@
     #include <GL/glut.h>
 #endif
 
+using namespace std;
+
 static Camera camera;
 
 static unsigned int width = 700;
@@ -22,7 +24,7 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 
 static bool fullScreen = false;
 
-static Tree* human;
+unique_ptr<Tree> human;
 int frame = 0;
 
 void reshape(int w, int h)
@@ -45,8 +47,15 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    human->drawMyHuman(human->getRoot(), frame);
-//    cout << "frame: " << frame << endl;
+    if (human->mode == Tree::Mode::BVH) {
+        vector<double> vec = (human->getRoot())->motion;
+        int num_channels = (human->getRoot())->num_channels;
+        glTranslated(-vec[(frame-1)*num_channels],
+                     -vec[(frame-1)*num_channels+1],
+                     -vec[(frame-1)*num_channels+2]);
+    	human->drawMyHuman(human->getRoot(), frame);
+    }
+	else human->drawMyHuman(human->getRoot());
     glPopMatrix();
 	glutSwapBuffers();
 }
@@ -80,7 +89,8 @@ void mouseCB(int button, int state, int x, int y)
 	}
 	else
 	{
-		if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_SHIFT==glutGetModifiers())
+		if (button==GLUT_LEFT_BUTTON
+			&& GLUT_ACTIVE_SHIFT==glutGetModifiers())
 		{
 			lastX = x;
 			lastY = y;
@@ -88,7 +98,8 @@ void mouseCB(int button, int state, int x, int y)
 			mouseRotatePressed = false;
 			mouseZoomPressed   = false;
 		}
-		else if (button==GLUT_LEFT_BUTTON && GLUT_ACTIVE_CTRL==glutGetModifiers())
+		else if (button==GLUT_LEFT_BUTTON 
+			&& GLUT_ACTIVE_CTRL==glutGetModifiers())
 		{
 			lastZoom = y;
 			mouseMovePressed   = false;
@@ -149,7 +160,17 @@ int main(int argc, char** argv)
 	glutCreateWindow("Viewer");
     
 	const string filename = "MotionData/Trial002.bvh";
-    human = new Tree(filename);	
+
+	// TODO: Setup Mode by keyboard input
+
+	// if (something) {
+	// 	human = make_unique<Tree>(filename, );
+	// } else {
+	// 	human = make_unique<Tree>()
+	// }
+	human = make_unique<Tree>(Tree::Mode::BVH, filename);
+	
+    
 	manual();
 
 	camera.resize(width, height);
