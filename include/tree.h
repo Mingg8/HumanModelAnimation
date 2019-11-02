@@ -11,9 +11,11 @@
 #include <GL/glut.h>
 #endif
 
+using joint::Joint;
+
 struct MOTION
 {
-    unsigned int num_frames;              // number of frames
+    unsigned int num_frames = -1;              // number of frames
     unsigned int num_motion_channels = 0; // number of motion channels
     MatrixXd data;                   // motion float data array
     double frame_time = 0.05;
@@ -24,6 +26,7 @@ class Tree {
   public:
 	enum Mode {BVH, IK};
     Tree(Mode mode, const string _file = "MotionData/Trial000.bvh");
+    Tree(const Tree& t);
     
     Joint* getRoot();
     void setUpMyHuman();
@@ -33,11 +36,13 @@ class Tree {
     MOTION motionData;
     void sendDataToJoint(Joint* joint, int frame, int &data_index);
     Mode mode;
+    vector<Joint*> joints;
 
   private:
     void loadJoint(std::istream& stream, Joint* parent);
     void loadMotion(std::istream& stream);
     void loadHierarchy(std::istream& stream);
+    void setVector(Joint* joint, int &data_index);
 
     Joint* root_joint;
     int body_num = 0;

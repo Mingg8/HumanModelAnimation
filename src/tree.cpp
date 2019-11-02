@@ -17,6 +17,8 @@ Tree::Tree(Mode _mode, const string _file) {
     } else {
     // Load the skeleton only
         load("MotionData/Trial000.bvh");
+        int i = 0;
+        setVector(root_joint, i);
     }
 }
 
@@ -180,8 +182,18 @@ void Tree::loadMotion(std::istream& stream)
     }
 }
 
-void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
+void Tree::setVector(Joint* joint, int &data_index) {
+    joints.push_back(joint);
     joint->channel_start_idx = data_index;
+    data_index += joint->num_channels;
+    
+    vector<Joint*> children = joint->getChildren();
+    for (int i = 0; i < children.size(); i++) {
+        setVector(children[i], data_index);
+    }
+}
+
+void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
     for (int i=0; i<joint->num_channels; i++)
         joint->motion.push_back(
             motionData.data(frame,data_index+i));
