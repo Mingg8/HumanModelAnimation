@@ -11,14 +11,12 @@
 #include <GL/glut.h>
 #endif
 
-using joint::Joint;
-
 struct MOTION
 {
     unsigned int num_frames = -1;              // number of frames
     unsigned int num_motion_channels = 0; // number of motion channels
     MatrixXd data;                   // motion float data array
-    double frame_time = 0.05;
+    double frame_time = 0.01;
 };
 
 
@@ -37,6 +35,7 @@ class Tree {
     void sendDataToJoint(Joint* joint, int frame, int &data_index);
     Mode mode;
     vector<Joint*> joints;
+    void setAngle(VectorXd angle, double sec);
 
   private:
     void loadJoint(std::istream& stream, Joint* parent);

@@ -98,11 +98,11 @@ void Tree::loadJoint(std::istream& stream, Joint* parent) {
             }
         }
         else if (tmp == "CHANNELS") {
-            stream >> joint->num_channels;
+            int num;
+            stream >> num;
+            joint->setNumChannels(num);
             // adding to motiondata
-            motionData.num_motion_channels += joint->num_channels;
-            joint->current_angle.resize(joint->num_channels);
-            (joint->current_angle).setZero();            
+            motionData.num_motion_channels += num;        
         }
         else if( tmp == "JOINT" )
         {
@@ -117,7 +117,7 @@ void Tree::loadJoint(std::istream& stream, Joint* parent) {
 
             tmp_joint->joint_name = "EndSite";
             tmp_joint->setParent(joint);
-            tmp_joint->num_channels = 0;
+            tmp_joint->setNumChannels(0);
 
            stream >> tmp;
            if( tmp == "OFFSET" ) {
@@ -185,7 +185,7 @@ void Tree::loadMotion(std::istream& stream)
 void Tree::setVector(Joint* joint, int &data_index) {
     joints.push_back(joint);
     joint->channel_start_idx = data_index;
-    data_index += joint->num_channels;
+    data_index += joint->getNumChannels();
     
     vector<Joint*> children = joint->getChildren();
     for (int i = 0; i < children.size(); i++) {
@@ -194,10 +194,10 @@ void Tree::setVector(Joint* joint, int &data_index) {
 }
 
 void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
-    for (int i=0; i<joint->num_channels; i++)
+    for (int i=0; i<joint->getNumChannels(); i++)
         joint->motion.push_back(
             motionData.data(frame,data_index+i));
-    data_index = data_index + joint->num_channels;
+    data_index = data_index + joint->getNumChannels();
     vector<Joint*> children = joint->getChildren();
     for (int i=0; i<children.size(); i++) {
         sendDataToJoint(children[i], frame, data_index);
@@ -206,6 +206,7 @@ void Tree::sendDataToJoint(Joint* joint, int frame, int &data_index) {
 
 void Tree::drawMyHuman(Joint *joint, int frame)
 {
+    glPushMatrix();
     joint->transform(frame);
     if (joint->joint_name != "EndSite") {
         (joint->getNode())->draw();
@@ -213,11 +214,11 @@ void Tree::drawMyHuman(Joint *joint, int frame)
     vector<Joint*> children_vec = joint->getChildren();
     for (size_t i=0; i<children_vec.size(); i++) {
         Joint *j = children_vec[i];
-        glPushMatrix();
         drawMyHuman(j, frame);
-        glPopMatrix();
     }
+    glPopMatrix();
 }
+
 Joint* Tree::getRoot()
 {
     return root_joint;
@@ -242,5 +243,18 @@ void Tree::load(const std::string& filename)
         file.close();
     } else {
         cout << "Wrong Filepath" << endl;
+    }
+}
+
+
+void Tree::setAngle(VectorXd ang_vel, double sec) {
+//    cout << "angle: " << angle.transpose() << endl;
+    int index = 0;
+    for (int i = 0; i < joints.size(); i++) {
+        int channel_num = joints[i]->getNumChannels();
+        for (int j = 0; j < channel_num; j++) {
+            (joints[i]->current_angle)(j) += ang_vel(index+j)*sec;
+        }
+        index += channel_num;
     }
 }

@@ -1,6 +1,6 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/solver.h"
-namespace joint {
+
 Joint::Joint()
 {
     joint_name = "";
@@ -72,16 +72,17 @@ void Joint::transform(int frame)
 
 void Joint::rotate(int frame)
 {
-    for(int i=0; i<num_channels; i++) {
+    for (int i = 0; i < num_channels; i++) {
         double angle;
         if (frame == -1) {
-            // controling manually
-            angle = current_angle[i];
-            cout << "angle: " << angle << endl;
+            // controlling manually
+            angle = current_angle(i)*180.0/M_PI;
+//            cout << angle << ", ";
         } else {
             // load bvh
             angle = motion[(frame-1)*num_channels+i];
         }
+        
         if (channels_order[i] == DIR::Xrot) {
             glRotated(angle, 1, 0, 0);
         } else if (channels_order[i] == DIR::Yrot) {
@@ -96,6 +97,7 @@ void Joint::rotate(int frame)
             glTranslated(0, 0, angle);
         }
     }
+//    cout << endl;
 }
 
 void Joint::addToChannel(Joint::DIR channel) {
@@ -110,7 +112,7 @@ Matrix4d Joint::getSE3() {
     mat(2, 3) = offset(2);
 
     for (int i = 0; i < num_channels; i++) {
-        double angle = current_angle[i];
+        double angle = current_angle(i);
         Matrix4d tmp;
         tmp.setIdentity();
         if (channels_order[i] == DIR::Xrot) {
@@ -133,4 +135,12 @@ Matrix4d Joint::getSE3() {
     }
     return mat;
 }
+
+int Joint::getNumChannels() {
+    return num_channels;
+}
+void Joint::setNumChannels(int num) {
+    num_channels = num;
+    current_angle.resize(num);
+    current_angle.setZero();
 }

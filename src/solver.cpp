@@ -1,43 +1,80 @@
 #include "../include/solver.h"
-
-
 // TODO: compute jacobian matrix & pseudo-inverse
 //      specify goal position and orientation of a limb (maybe right mouse input)
 //      implement Euler integration
 //      You may leave the skeletal root fixed
 
-MatrixXd calculateJacobian(struct MOTION motion, Joint *joint) {
-    MatrixXd jacob(6, motion.num_motion_channels);
-    jacob.setZero();
-    
-    // stack of nodes from joint to root
-    vector<Joint*> list;
+
+Solver::Solver(Joint* joint, int _num_motion_channels) {
+    num_motion_channels = _num_motion_channels;
+    // joint to root
     Joint* j = joint;
     while (true) {
-        list.push_back(j);
+        joint_vec.push_back(j);
         if (j->getParent() == nullptr) break;
         else j = j->getParent();
     }
+    // root to joint
+    reverse(joint_vec.begin(), joint_vec.end());
+    p_gain = 0.6;
+    
+    MatrixXd jacob = calculateJacobian();
+}
+
+VectorXd Solver::IK(Vector3d desired_pos) {
+    MatrixXd J = calculateJacobian();
+    Matrix3d zero; zero.setZero();
+    J.block(0, 0, 3, 3) = zero;
+    J.block(0, 3, 3, 3) = zero;
+    
+    // pseudo inverse
+    MatrixXd J_trans(num_motion_channels, 3);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < num_motion_channels; j++) {
+            J_trans(j, i) = J(i, j);
+        }
+    }
+    
+    // velocity in Cartesian
+    Vector3d car_vel = p_gain * (desired_pos - current_pos);
+//    cout << "desired_pos: " << desired_pos.transpose() << endl;
+//    cout << "cur pos: " << current_pos.transpose() << endl;
+//    cout << "velocity: " << car_vel.transpose() << endl;
+    VectorXd angle_vel(num_motion_channels);
+    
+    angle_vel = J_trans * (J*J_trans).inverse() * car_vel;
+    
+    // compute angle
+    
+    return angle_vel;
+}
+
+MatrixXd Solver::calculateJacobian() {
+    MatrixXd jacob(3, num_motion_channels);
+    jacob.setZero();
     
     // compute SE3 of the joint (root to joint)
     Matrix4d SE3;
     SE3.setIdentity();
     vector<Matrix4d> SE3_vec; //(root to joint)
-    for (size_t i = 0 ; i < list.size(); i++) {
-        j = list[list.size()-1-i];
+    
+    Joint* j;
+    for (size_t i = 0 ; i < joint_vec.size(); i++) {
+        j = joint_vec[i];
         Matrix4d mat = j->getSE3();
         SE3 = SE3 * mat;
         SE3_vec.push_back(SE3);
     }
     Matrix4d EE_SE3 = SE3; // SE3 of end point
+    current_pos = SE3.block(0, 3, 3, 1);
     
-    for (size_t i = 0; i < list.size(); i++) {
-        j = list[list.size()-i-1];
+    for (size_t i = 0; i < joint_vec.size(); i++) {
+        j = joint_vec[i];
         Matrix4d joint_SE3 = SE3_vec[i];
         int channel_idx = j->channel_start_idx;
         
-        for (int k = 0; k < j->num_channels; k++) {
-            Vector3d w, v;
+        for (int k = 0; k < j->getNumChannels(); k++) {
+            Vector3d v;
             Vector3d axis;
             
             if (j->channels_order[k] == Joint::DIR::Xrot) {
@@ -49,17 +86,16 @@ MatrixXd calculateJacobian(struct MOTION motion, Joint *joint) {
             } else {
                 axis << 0, 0, 0;
             }
-            
-            w = joint_SE3.block(0, 3, 3, 1) * axis;
             Vector3d r = EE_SE3.block(0, 3, 3, 1) - joint_SE3.block(0, 3, 3, 1);
-            v = joint_SE3.block(0, 3, 3, 1) * (axis.cross(r));
-            
+            v = joint_SE3.block(0, 0, 3, 3) * (axis.cross(r));
+
             jacob.block(0, channel_idx+k, 3, 1) = v;
-            jacob.block(3, channel_idx+k, 3, 1) = w;
         }
     }
+    return jacob;
 }
 
-void eulerIntegration() {
-    
+
+Vector3d Solver::getCurrentPos() {
+    return current_pos;
 }

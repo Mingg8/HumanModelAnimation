@@ -26,6 +26,11 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 static bool fullScreen = false;
 
 unique_ptr<Tree> human;
+unique_ptr<Solver> solver;
+
+Vector3d desired_pos;
+Vector3d current_pos;
+
 int frame = 0;
 
 void reshape(int w, int h)
@@ -34,11 +39,40 @@ void reshape(int w, int h)
 }
 
 void move(int millisec) {
-    if (frame < human->motionData.num_frames) {
-        frame++;
+    if (human->mode == Tree::Mode::BVH) {
+        if (frame < human->motionData.num_frames) {
+            frame++;
+            glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
+            glutPostRedisplay();
+        }
+    } else {
+        desired_pos << 1.0, -4.0, 1.0;
+        VectorXd ang_vel;
+        ang_vel = solver->IK(desired_pos);
+        human->setAngle(ang_vel, human->motionData.frame_time);
+        current_pos = solver->getCurrentPos();
         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
         glutPostRedisplay();
     }
+}
+
+void drawBall() {
+    GLUquadric *sphere;
+    sphere = gluNewQuadric();
+    
+    // Desired position (red)
+    glColor3f(1, 0.0, 0.0);
+    glPushMatrix();
+    glTranslated(desired_pos(0), desired_pos(1), desired_pos(2));
+    gluSphere(sphere, 0.1, 50, 10);
+    glPopMatrix();
+    
+    // current position (green)
+    glColor3f(0.0, 1.0, 0.0);
+    glPushMatrix();
+    glTranslated(current_pos(0), current_pos(1), current_pos(2));
+    gluSphere(sphere, 0.1, 50, 10);
+    glPopMatrix();
 }
 
 void display()
@@ -51,15 +85,15 @@ void display()
     if (human->mode == Tree::Mode::BVH) {
         // to track the root (only translation)
         vector<double> vec = (human->getRoot())->motion;
-        int num_channels = (human->getRoot())->num_channels;
+        int num_channels = (human->getRoot())->getNumChannels();
         glTranslated(-vec[(frame-1)*num_channels],
                      -vec[(frame-1)*num_channels+1],
                      -vec[(frame-1)*num_channels+2]);
     	human->drawMyHuman(human->getRoot(), frame);
     }
     else {
-//        calculateJacobian(human->motionData, (human->joints)[5]);
-        human->drawMyHuman(human->getRoot());
+        human->drawMyHuman(human->getRoot(), frame);
+        drawBall();
     }
     glPopMatrix();
 	glutSwapBuffers();
@@ -165,16 +199,22 @@ int main(int argc, char** argv)
 	glutCreateWindow("Viewer");
     
 	const string filename = "../MotionData/Trial002.bvh";
-
-	// TODO: Setup Mode by keyboard input
-
-	// if (something) {
-	// 	human = make_unique<Tree>(filename, );
-	// } else {
-	// 	human = make_unique<Tree>()
-	// }
-	human = make_unique<Tree>(Tree::Mode::IK, filename);
-	
+    
+    // OPTION
+    Tree::Mode mode = Tree::Mode::IK;
+    human = make_unique<Tree>(mode, filename);
+    
+    if (mode == Tree::Mode::IK) {
+        frame = -1;
+        solver = make_unique<Solver>((human->joints)[5],
+                                     human->motionData.num_motion_channels);
+        current_pos = solver->getCurrentPos();
+        desired_pos = current_pos;
+        cout << "human & solver setup done" << endl;
+    } else {
+        frame = 0;
+    }
+    
 	manual();
 
 	camera.resize(width, height);

@@ -15,7 +15,6 @@
 using namespace std;
 using namespace Eigen;
 
-namespace joint {
 class Joint
 {
  public:
@@ -37,15 +36,17 @@ class Joint
 
    // channel
    enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
-   int num_channels;
    void addToChannel(DIR);
+    int getNumChannels();
+    void setNumChannels(int num);
    int channel_start_idx;
    vector<double> motion;
    VectorXd current_angle;
     vector<DIR> channels_order;
     
  private:
-   int joint_num;
+    int joint_num;
+    int num_channels;
    void rotation2angleaxis(Matrix4d, double*);
 
    void rotate(int frame);
@@ -56,4 +57,3 @@ class Joint
    Joint* parent;
    std::vector<Joint*> children;
 };
-}
