@@ -20,33 +20,37 @@ Solver::Solver(Joint* joint, int _num_motion_channels) {
     MatrixXd jacob = calculateJacobian();
 }
 
-VectorXd Solver::IK(Vector3d desired_pos) {
+VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     MatrixXd J = calculateJacobian();
     Matrix3d zero; zero.setZero();
+    
+    // fix root
     J.block(0, 0, 3, 3) = zero;
     J.block(0, 3, 3, 3) = zero;
     
     // pseudo inverse
-    MatrixXd J_trans(num_motion_channels, 3);
-    for (int i = 0; i < 3; i++) {
+    MatrixXd J_trans(num_motion_channels, 6);
+    for (int i = 0; i < 6; i++) {
         for (int j = 0; j < num_motion_channels; j++) {
             J_trans(j, i) = J(i, j);
         }
     }
     
     // velocity in Cartesian
-    Vector3d car_vel = p_gain * (desired_pos - current_pos);
-//    cout << "desired_pos: " << desired_pos.transpose() << endl;
-//    cout << "cur pos: " << current_pos.transpose() << endl;
-//    cout << "velocity: " << car_vel.transpose() << endl;
+    MatrixXd car_vel(6, 1);
+    car_vel.block(0, 0, 3, 1) = p_gain * (desired_pos - current_pos);
+    Matrix3d rot_diff = desired_rot * current_rot.transpose();
+    AngleAxisd diffAngleAxis(rot_diff);
+    car_vel.block   (3, 0, 3, 1) = diffAngleAxis.angle() * diffAngleAxis.axis();
+    
     VectorXd angle_vel(num_motion_channels);
-    MatrixXd pseudo_inverse(num_motion_channels, 3);
+    MatrixXd pseudo_inverse(num_motion_channels, 6);
     MatrixXd identity(num_motion_channels, num_motion_channels);
     identity.setIdentity();
     
     MatrixXd weight(num_motion_channels, num_motion_channels);
     weight.setIdentity();
-
+    
     weight(10, 10) = 10.0;
     weight(13, 13) = 0.0;
     
@@ -57,7 +61,7 @@ VectorXd Solver::IK(Vector3d desired_pos) {
 }
 
 MatrixXd Solver::calculateJacobian() {
-    MatrixXd jacob(3, num_motion_channels);
+    MatrixXd jacob(6, num_motion_channels);
     jacob.setZero();
     
     // compute SE3 of the joint (root to joint)
@@ -74,6 +78,7 @@ MatrixXd Solver::calculateJacobian() {
     }
     Matrix4d EE_SE3 = SE3; // SE3 of end point
     current_pos = SE3.block(0, 3, 3, 1);
+    current_rot = SE3.block(0, 0, 3, 3);
     
     int index = 0;
     for (size_t i = 0; i < joint_vec.size(); i++) {
@@ -85,7 +90,7 @@ MatrixXd Solver::calculateJacobian() {
             angle_vec(index) = j->current_angle(k);
             index++;
             
-            Vector3d v;
+            Vector3d v, w;
             Vector3d axis;
             
             if (j->channels_order[k] == Joint::DIR::Xrot) {
@@ -99,13 +104,14 @@ MatrixXd Solver::calculateJacobian() {
             }
             Vector3d r = EE_SE3.block(0, 3, 3, 1) - joint_SE3.block(0, 3, 3, 1);
             v = joint_SE3.block(0, 0, 3, 3) * (axis.cross(r));
+            w = joint_SE3.block(0, 0, 3, 3) * axis;
 
             jacob.block(0, channel_idx+k, 3, 1) = v;
+            jacob.block(3, channel_idx+k, 3, 1) = w;
         }
     }
     return jacob;
 }
-
 
 Vector3d Solver::getCurrentPos() {
     return current_pos;

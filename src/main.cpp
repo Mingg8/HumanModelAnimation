@@ -29,6 +29,7 @@ unique_ptr<Tree> human;
 unique_ptr<Solver> solver;
 
 Vector3d desired_pos;
+Matrix3d desired_orientation;
 Vector3d current_pos;
 
 int frame = 0;
@@ -47,8 +48,11 @@ void move(int millisec) {
         }
     } else {
         desired_pos << 1.0, -4.0, 1.0;
+        desired_orientation << 1, 0, 0,
+                                0, 1, 0,
+                                0, 0, 1;
         VectorXd ang_vel;
-        ang_vel = solver->IK(desired_pos);
+        ang_vel = solver->IK(desired_pos, desired_orientation);
         human->setAngle(ang_vel, human->motionData.frame_time);
         current_pos = solver->getCurrentPos();
         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
@@ -206,7 +210,7 @@ int main(int argc, char** argv)
     
     if (mode == Tree::Mode::IK) {
         frame = -1;
-        solver = make_unique<Solver>((human->joints)[5],
+        solver = make_unique<Solver>((human->joints)[4],
                                      human->motionData.num_motion_channels);
         current_pos = solver->getCurrentPos();
         desired_pos = current_pos;
