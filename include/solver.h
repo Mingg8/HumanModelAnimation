@@ -14,6 +14,7 @@ public:
     
 private:
     vector<Joint*> joint_vec;
+    VectorXd angle_vec;
     Joint* joint;
     int num_motion_channels;
     Vector3d current_pos;

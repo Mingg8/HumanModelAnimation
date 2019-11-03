@@ -1,12 +1,11 @@
 #include "../include/solver.h"
-// TODO: compute jacobian matrix & pseudo-inverse
-//      specify goal position and orientation of a limb (maybe right mouse input)
-//      implement Euler integration
-//      You may leave the skeletal root fixed
-
+// TODO: joint flexibility & orientation input
 
 Solver::Solver(Joint* joint, int _num_motion_channels) {
     num_motion_channels = _num_motion_channels;
+    angle_vec.resize(num_motion_channels);
+    angle_vec.setZero();
+    
     // joint to root
     Joint* j = joint;
     while (true) {
@@ -41,11 +40,19 @@ VectorXd Solver::IK(Vector3d desired_pos) {
 //    cout << "cur pos: " << current_pos.transpose() << endl;
 //    cout << "velocity: " << car_vel.transpose() << endl;
     VectorXd angle_vel(num_motion_channels);
+    MatrixXd pseudo_inverse(num_motion_channels, 3);
+    MatrixXd identity(num_motion_channels, num_motion_channels);
+    identity.setIdentity();
     
-    angle_vel = J_trans * (J*J_trans).inverse() * car_vel;
+    MatrixXd weight(num_motion_channels, num_motion_channels);
+    weight.setIdentity();
+
+    weight(10, 10) = 10.0;
+    weight(13, 13) = 0.0;
     
-    // compute angle
+    pseudo_inverse = weight * J_trans * (J*weight*J_trans).inverse();
     
+    angle_vel = pseudo_inverse * car_vel;
     return angle_vel;
 }
 
@@ -68,12 +75,16 @@ MatrixXd Solver::calculateJacobian() {
     Matrix4d EE_SE3 = SE3; // SE3 of end point
     current_pos = SE3.block(0, 3, 3, 1);
     
+    int index = 0;
     for (size_t i = 0; i < joint_vec.size(); i++) {
         j = joint_vec[i];
         Matrix4d joint_SE3 = SE3_vec[i];
         int channel_idx = j->channel_start_idx;
         
         for (int k = 0; k < j->getNumChannels(); k++) {
+            angle_vec(index) = j->current_angle(k);
+            index++;
+            
             Vector3d v;
             Vector3d axis;
             
