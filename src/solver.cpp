@@ -1,5 +1,4 @@
 #include "../include/solver.h"
-// TODO: joint flexibility & orientation input
 
 Solver::Solver(Joint* joint, int _num_motion_channels) {
     num_motion_channels = _num_motion_channels;
@@ -24,10 +23,6 @@ VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     MatrixXd J = calculateJacobian();
     Matrix3d zero; zero.setZero();
     
-    // fix root
-    J.block(0, 0, 3, 3) = zero;
-    J.block(0, 3, 3, 3) = zero;
-    
     // pseudo inverse
     MatrixXd J_trans(num_motion_channels, 6);
     for (int i = 0; i < 6; i++) {
@@ -48,19 +43,29 @@ VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     MatrixXd identity(num_motion_channels, num_motion_channels);
     identity.setIdentity();
     
+    // joint flexibility
     MatrixXd weight(num_motion_channels, num_motion_channels);
     weight.setIdentity();
+
+    int arr_1[6] = {0, 1, 2, 3, 4, 5};
+    int arr_2[15] = {6, 7, 8, 18, 19, 20, 30, 31, 32, 36, 37, 38, 48, 49, 50};
+    int arr_3[15] = {9, 10, 11, 21, 22, 23, 33, 34, 35, 39, 40, 41, 51, 52, 53};
+    int arr_4[12] = {12, 13, 14, 24, 25, 26, 42, 43, 44, 54, 55, 56};
+    int arr_5[12] = {15, 16, 17, 27, 28, 29, 45, 46, 47, 57, 58, 59};
     
-    weight(10, 10) = 10.0;
-    weight(13, 13) = 0.0;
+    for (int i = 0; i < 6; i++) weight(arr_1[i], arr_1[i]) = 1;
+    for (int i = 0; i < 15; i++) weight(arr_2[i], arr_2[i]) = 5;
+    for (int i = 0; i < 15; i++) weight(arr_3[i], arr_3[i]) = 25;
+    for (int i = 0; i < 12; i++) weight(arr_4[i], arr_4[i]) = 125;
+    for (int i = 0; i < 12; i++) weight(arr_5[i], arr_5[i]) = 625;
     
+    // avoid sigularity
     double det = (J*weight*J_trans).determinant();
     if (abs(det) < 0.01) {
         angle_vel = J_trans * car_vel;
     } else {
         pseudo_inverse = weight * J_trans * (J*weight*J_trans).inverse();
         angle_vel = pseudo_inverse * car_vel;
-
     }
     return angle_vel;
 }
