@@ -41,7 +41,7 @@ VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     car_vel.block(0, 0, 3, 1) = p_gain * (desired_pos - current_pos);
     Matrix3d rot_diff = desired_rot * current_rot.transpose();
     AngleAxisd diffAngleAxis(rot_diff);
-    car_vel.block   (3, 0, 3, 1) = diffAngleAxis.angle() * diffAngleAxis.axis();
+    car_vel.block(3, 0, 3, 1) = diffAngleAxis.angle() * diffAngleAxis.axis();
     
     VectorXd angle_vel(num_motion_channels);
     MatrixXd pseudo_inverse(num_motion_channels, 6);
@@ -54,9 +54,14 @@ VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     weight(10, 10) = 10.0;
     weight(13, 13) = 0.0;
     
-    pseudo_inverse = weight * J_trans * (J*weight*J_trans).inverse();
-    
-    angle_vel = pseudo_inverse * car_vel;
+    double det = (J*weight*J_trans).determinant();
+    if (abs(det) < 0.01) {
+        angle_vel = J_trans * car_vel;
+    } else {
+        pseudo_inverse = weight * J_trans * (J*weight*J_trans).inverse();
+        angle_vel = pseudo_inverse * car_vel;
+
+    }
     return angle_vel;
 }
 
@@ -115,4 +120,8 @@ MatrixXd Solver::calculateJacobian() {
 
 Vector3d Solver::getCurrentPos() {
     return current_pos;
+}
+
+Matrix3d Solver::getCurrentRot() {
+    return current_rot;
 }

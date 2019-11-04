@@ -1,0 +1,119 @@
+HIERARCHY
+ROOT pelvis
+{
+	OFFSET 0.000000 0.000000 0.000000
+	CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
+	JOINT lfemur
+	{
+		OFFSET 11.446000 0.000000 0.000000
+		CHANNELS 3 Zrotation Xrotation Yrotation
+		JOINT ltibia
+		{
+			OFFSET 0.000000 -42.030400 0.000000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT lfoot
+			{
+				OFFSET 0.000000 -39.930200 0.000000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT ltoes
+				{
+					OFFSET 0.000000 0.000000 11.775800
+					CHANNELS 3 Zrotation Xrotation Yrotation
+					End Site
+					{
+					    OFFSET 0.000000 0.000000 5.000000
+					}
+				}
+			}
+		}
+	}
+	JOINT rfemur
+	{
+		OFFSET -11.446000 0.000000 0.000000
+		CHANNELS 3 Zrotation Xrotation Yrotation
+		JOINT rtibia
+		{
+			OFFSET 0.000000 -42.030400 0.000000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT rfoot
+			{
+				OFFSET 0.000000 -39.930200 0.000000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT rtoes
+				{
+					OFFSET 0.000000 0.000000 11.775800
+					CHANNELS 3 Zrotation Xrotation Yrotation
+					End Site
+					{
+					    OFFSET 0.000000 0.000000 5.000000
+					}
+				}
+			}
+		}
+	}
+	JOINT thorax
+	{
+		OFFSET 0.000000 11.255600 -5.000000
+		CHANNELS 3 Zrotation Xrotation Yrotation
+		JOINT head
+		{
+			OFFSET 0.000000 43.799300 0.000000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			End Site
+			{
+			    OFFSET 0.000000 5.000000 0.000000
+			}
+		}
+		JOINT lclavicle
+		{
+			OFFSET 0.000000 39.863000 0.000000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT lhumerus
+			{
+				OFFSET 17.380600 4.958300 0.000000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT lradius
+				{
+					OFFSET 0.000000 -27.561300 0.000000
+					CHANNELS 3 Zrotation Xrotation Yrotation
+					JOINT lhand
+					{
+						OFFSET 0.000000 -26.933000 0.000000
+						CHANNELS 3 Zrotation Xrotation Yrotation
+						End Site
+						{
+						    OFFSET 0.000000 -5.000000 0.000000
+						}
+					}
+				}
+			}
+		}
+		JOINT rclavicle
+		{
+			OFFSET 0.000000 39.863000 0.000000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT rhumerus
+			{
+				OFFSET -17.380600 4.958300 0.000000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT rradius
+				{
+					OFFSET 0.000000 -27.561300 0.000000
+					CHANNELS 3 Zrotation Xrotation Yrotation
+					JOINT rhand
+					{
+						OFFSET 0.000000 -26.933000 0.000000
+						CHANNELS 3 Zrotation Xrotation Yrotation
+						End Site
+						{
+						    OFFSET 0.000000 -5.000000 0.000000
+						}
+					}
+				}
+			}
+		}
+	}
+}
+MOTION
+Frames: 3228
+Frame Time: 0.008342

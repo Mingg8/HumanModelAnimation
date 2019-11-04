@@ -11,6 +11,7 @@ public:
     Solver(Joint* joint, int num_motion_channels);
     VectorXd IK(Vector3d position, Matrix3d rot);
     Vector3d getCurrentPos();
+    Matrix3d getCurrentRot();
     
 private:
     vector<Joint*> joint_vec;

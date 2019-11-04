@@ -246,9 +246,7 @@ void Tree::load(const std::string& filename)
     }
 }
 
-
 void Tree::setAngle(VectorXd ang_vel, double sec) {
-//    cout << "angle: " << angle.transpose() << endl;
     int index = 0;
     for (int i = 0; i < joints.size(); i++) {
         int channel_num = joints[i]->getNumChannels();

@@ -77,7 +77,6 @@ void Joint::rotate(int frame)
         if (frame == -1) {
             // controlling manually
             angle = current_angle(i)*180.0/M_PI;
-//            cout << angle << ", ";
         } else {
             // load bvh
             angle = motion[(frame-1)*num_channels+i];
@@ -97,7 +96,6 @@ void Joint::rotate(int frame)
             glTranslated(0, 0, angle);
         }
     }
-//    cout << endl;
 }
 
 void Joint::addToChannel(Joint::DIR channel) {

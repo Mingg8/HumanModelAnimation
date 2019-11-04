@@ -31,6 +31,7 @@ unique_ptr<Solver> solver;
 Vector3d desired_pos;
 Matrix3d desired_orientation;
 Vector3d current_pos;
+Matrix3d current_rot;
 
 int frame = 0;
 
@@ -47,17 +48,29 @@ void move(int millisec) {
             glutPostRedisplay();
         }
     } else {
-        desired_pos << 1.0, -4.0, 1.0;
-        desired_orientation << 1, 0, 0,
-                                0, 1, 0,
-                                0, 0, 1;
         VectorXd ang_vel;
         ang_vel = solver->IK(desired_pos, desired_orientation);
         human->setAngle(ang_vel, human->motionData.frame_time);
         current_pos = solver->getCurrentPos();
+		current_rot = solver->getCurrentRot();
         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
         glutPostRedisplay();
     }
+}
+
+void drawCoordinate(Matrix3d rot) {
+	AngleAxisd new_aa(rot);
+	Vector3d axis = new_aa.axis();
+	glRotated(new_aa.angle()*180.0/M_PI, axis(0), axis(1), axis(2));
+	glBegin(GL_LINES);
+	glVertex3d(0, 0, 0);
+	glVertex3d(1, 0, 0);
+	glVertex3d(0, 0, 0);
+	glVertex3d(0, 1, 0);
+	glVertex3d(0, 0, 0);
+	glVertex3d(0, 0, 1);
+	glEnd();
+	glPopMatrix();
 }
 
 void drawBall() {
@@ -68,14 +81,16 @@ void drawBall() {
     glColor3f(1, 0.0, 0.0);
     glPushMatrix();
     glTranslated(desired_pos(0), desired_pos(1), desired_pos(2));
-    gluSphere(sphere, 0.1, 50, 10);
+    gluSphere(sphere, 0.18, 50, 10);
+	drawCoordinate(desired_orientation);
     glPopMatrix();
     
     // current position (green)
     glColor3f(0.0, 1.0, 0.0);
     glPushMatrix();
     glTranslated(current_pos(0), current_pos(1), current_pos(2));
-    gluSphere(sphere, 0.1, 50, 10);
+    gluSphere(sphere, 0.18, 50, 10);
+	drawCoordinate(current_rot);
     glPopMatrix();
 }
 
@@ -103,8 +118,17 @@ void display()
 	glutSwapBuffers();
 }
 
+void moveDesired(double speed, Vector3d trans, Vector3d rot) {
+	AngleAxisd aa(speed, rot);
+	desired_pos = desired_pos + speed * trans;
+	desired_orientation = desired_orientation * aa.toRotationMatrix();
+}
+
 void keyboardCB(unsigned char keyPressed, int x, int y)
 {
+	double trans_speed = 0.05;
+	double rot_speed = 0.5;
+	Vector3d zero(0, 0, 0);
 	switch (keyPressed) {
 		case 'f':
 			if (fullScreen == true) {
@@ -118,6 +142,24 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 		case 'q':
 			exit(0);
 			break;
+		case 'a':
+			moveDesired(trans_speed, Vector3d(-1, 0, 0), zero); break;
+		case 'd':
+			moveDesired(trans_speed, Vector3d(1, 0, 0), zero); break;
+		case 'w':
+			moveDesired(trans_speed, Vector3d(0, 1, 0), zero); break;
+		case 's':
+			moveDesired(trans_speed, Vector3d(0, -1, 0), zero); break;
+		case 'j':
+			moveDesired(trans_speed, Vector3d(0, 0, 1), zero); break;
+		case 'k':
+			moveDesired(trans_speed, Vector3d(0, 0, -1), zero); break;
+		case 'x':
+			moveDesired(rot_speed, zero, Vector3d(1, 0, 0)); break;
+		case 'y':
+			moveDesired(rot_speed, zero, Vector3d(0, 1, 0)); break;
+		case 'z':
+			moveDesired(rot_speed, zero, Vector3d(0, 0, 1)); break;
 	}
 	glutPostRedisplay();
 }
@@ -185,40 +227,76 @@ void motionCB(int x, int y)
 
 void manual()
 {
-	std::cout << "==================manual=================" << std::endl;
-	std::cout << std::endl;
-	std::cout << "   rotate  :  left click & drag" << std::endl;
-	std::cout << "    zoom   :  ctrl + left click & drag" << std::endl;
-	std::cout << " translate :  shift + left click & drag" << std::endl;
-	std::cout << "  'f' key  :  full screen" << std::endl;
-	std::cout << std::endl;
-	std::cout << "=========================================" << std::endl;
+	cout << endl;
+	cout << "==================manual=================" << std::endl;
+	cout << std::endl;
+	cout << "   rotate  :  left click & drag" << std::endl;
+	cout << "    zoom   :  ctrl + left click & drag" << std::endl;
+	cout << " translate :  shift + left click & drag" << std::endl;
+	cout << "  'f' key  :  full screen" << std::endl;
+
+	cout << " 'a' & 'd' :  move desired position -x, +x (spatial frame)" << std::endl;
+	cout << " 'w' & 's' :  move desired position +y, -y" << endl;
+	cout << " 'j' & 'k' :  move desired position +z, -z" << endl;
+	cout << "'x','y','z':  rotate desired orientation (body frame)" << endl;
+	cout << std::endl;
+	cout << "=========================================" << std::endl;
+}
+
+int joint_selection()
+{
+	cout << "===============joint selection=============" << endl;
+	cout << endl;
+	cout << "     left knee   :  2  " << endl;
+	cout << "     left ankle  :  3  " << endl;
+	cout << "     left foot   :  4  " << endl;
+	cout << "     left toe    :  5  " << endl;
+	cout << "    right knee   :  6  " << endl;
+	cout << "    right angle  :  7  " << endl;
+	cout << "    right foot   :  8  " << endl;
+	cout << "    right toe    :  9  " << endl;
+	cout << "        head     :  12 " << endl;
+	cout << "    left shoulder:  15  " << endl;
+	cout << "    left elbow   :  16  " << endl;
+	cout << "    left wrist   :  17  " << endl;
+	cout << "    left hand    :  18  " << endl;
+	cout << "   right shoulder:  20  " << endl;
+	cout << "   right elbow   :  21  " << endl;
+	cout << "   right wrist   :  22  " << endl;
+	cout << "   right hand    :  23  " << endl;
+	cout << endl;
+	cout << "===========================================" << endl;
+	cout << " Enter the joint number you want to control : ";
+
+	int selection;
+	cin >> selection;
+	return selection;
 }
 
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
-	glutInitWindowSize(width, height);
-	glutCreateWindow("Viewer");
     
 	const string filename = "../MotionData/Trial002.bvh";
-    
-    // OPTION
     Tree::Mode mode = Tree::Mode::IK;
     human = make_unique<Tree>(mode, filename);
     
     if (mode == Tree::Mode::IK) {
         frame = -1;
-        solver = make_unique<Solver>((human->joints)[4],
+		int num = joint_selection();
+        solver = make_unique<Solver>((human->joints)[num],
                                      human->motionData.num_motion_channels);
         current_pos = solver->getCurrentPos();
+		current_rot = solver->getCurrentRot();
         desired_pos = current_pos;
-        cout << "human & solver setup done" << endl;
+		desired_orientation = current_rot;
     } else {
         frame = 0;
     }
     
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
+	glutInitWindowSize(width, height);
+	glutCreateWindow("Viewer");
 	manual();
 
 	camera.resize(width, height);
