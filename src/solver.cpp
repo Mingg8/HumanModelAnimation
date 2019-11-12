@@ -70,15 +70,9 @@ VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     return angle_vel;
 }
 
-MatrixXd Solver::calculateJacobian() {
-    MatrixXd jacob(6, num_motion_channels);
-    jacob.setZero();
-    
-    // compute SE3 of the joint (root to joint)
-    Matrix4d SE3;
+void Solver::calculateSE3(Matrix4d &SE3,
+        vector<Matrix4d> &SE3_vec) {
     SE3.setIdentity();
-    vector<Matrix4d> SE3_vec; //(root to joint)
-    
     Joint* j;
     for (size_t i = 0 ; i < joint_vec.size(); i++) {
         j = joint_vec[i];
@@ -86,11 +80,19 @@ MatrixXd Solver::calculateJacobian() {
         SE3 = SE3 * mat;
         SE3_vec.push_back(SE3);
     }
-    Matrix4d EE_SE3 = SE3; // SE3 of end point
     current_pos = SE3.block(0, 3, 3, 1);
     current_rot = SE3.block(0, 0, 3, 3);
-    
+}
+
+MatrixXd Solver::calculateJacobian() {
+    Matrix4d EE_SE3;
+    vector<Matrix4d> SE3_vec; // root to joint
+    calculateSE3(EE_SE3, SE3_vec);
     int index = 0;
+    MatrixXd jacob(6, num_motion_channels);
+    jacob.setZero();
+    
+    Joint* j;
     for (size_t i = 0; i < joint_vec.size(); i++) {
         j = joint_vec[i];
         Matrix4d joint_SE3 = SE3_vec[i];
