@@ -24,11 +24,11 @@ Camera::Camera ()
 
 	trackball (curquat, 0.0, 0.0, 0.0, 0.0, 0.0);
 	x = y = z = 0.0;
-	dolly = 3.0;
+	dolly = 280.0;
 
 	rot_scale   = 2.0;
-	trans_scale = 3.0;
-	zoom_scale  = 10.0;
+	trans_scale = 30.0;
+	zoom_scale  = 100.0;
 }
 
 void Camera::resize (int _W, int _H)

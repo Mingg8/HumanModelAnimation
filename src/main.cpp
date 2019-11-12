@@ -73,6 +73,28 @@ void drawCoordinate(Matrix3d rot) {
 	glPopMatrix();
 }
 
+void drawFloor() {
+    double y_height = 0.0;
+    int GridSizeX = 16;
+    int GridSizeY = 16;
+    int SizeX = 80;
+    int SizeY = 80;
+    glBegin(GL_QUADS);
+    for (int x = -GridSizeX; x < GridSizeX; ++x) {
+        for (int y = -GridSizeY; y < GridSizeY; ++y) {
+            if ((x+y)%2 == 0)
+                glColor3d(1.0, 1.0, 1.0);
+            else
+                glColor3d(0.0, 0.0, 0.0);
+            glVertex3d(x*SizeX, y_height, y*SizeY);
+            glVertex3d((x+1)*SizeX, y_height, y*SizeY);
+            glVertex3d((x+1)*SizeX, y_height, (y+1)*SizeY);
+            glVertex3d(x*SizeX, y_height, (y+1)*SizeY);
+        }
+    }
+    glEnd();
+}
+
 void drawBall() {
     GLUquadric *sphere;
     sphere = gluNewQuadric();
@@ -106,13 +128,16 @@ void display()
         vector<double> vec = (human->getRoot())->motion;
         int num_channels = (human->getRoot())->getNumChannels();
         glTranslated(-vec[(frame-1)*num_channels],
-                     -vec[(frame-1)*num_channels+1],
+//                      -vec[(frame-1)*num_channels+1],
+                     0.0,
                      -vec[(frame-1)*num_channels+2]);
     	human->drawMyHuman(human->getRoot(), frame);
+        drawFloor();
     }
     else {
         human->drawMyHuman(human->getRoot(), frame);
         drawBall();
+        drawFloor();
     }
     glPopMatrix();
 	glutSwapBuffers();
@@ -127,7 +152,7 @@ void moveDesired(double speed, Vector3d trans, Vector3d rot) {
 void keyboardCB(unsigned char keyPressed, int x, int y)
 {
 	double trans_speed = 0.05;
-	double rot_speed = 0.5;
+	double rot_speed = 0.2;
 	Vector3d zero(0, 0, 0);
 	switch (keyPressed) {
 		case 'f':
@@ -278,7 +303,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
     
 	const string filename = "../MotionData/Trial002.bvh";
-    Tree::Mode mode = Tree::Mode::IK;
+    Tree::Mode mode = Tree::Mode::BVH;
     human = make_unique<Tree>(mode, filename);
     
     if (mode == Tree::Mode::IK) {
