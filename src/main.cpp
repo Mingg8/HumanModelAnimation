@@ -64,11 +64,11 @@ void drawCoordinate(Matrix3d rot) {
 	glRotated(new_aa.angle()*180.0/M_PI, axis(0), axis(1), axis(2));
 	glBegin(GL_LINES);
 	glVertex3d(0, 0, 0);
-	glVertex3d(1, 0, 0);
+	glVertex3d(10, 0, 0);
 	glVertex3d(0, 0, 0);
-	glVertex3d(0, 1, 0);
+	glVertex3d(0, 10, 0);
 	glVertex3d(0, 0, 0);
-	glVertex3d(0, 0, 1);
+	glVertex3d(0, 0, 10);
 	glEnd();
 	glPopMatrix();
 }
@@ -103,7 +103,7 @@ void drawBall() {
     glColor3f(1, 0.0, 0.0);
     glPushMatrix();
     glTranslated(desired_pos(0), desired_pos(1), desired_pos(2));
-    gluSphere(sphere, 0.18, 50, 10);
+    gluSphere(sphere, 1.8, 50, 10);
 	drawCoordinate(desired_orientation);
     glPopMatrix();
     
@@ -111,7 +111,7 @@ void drawBall() {
     glColor3f(0.0, 1.0, 0.0);
     glPushMatrix();
     glTranslated(current_pos(0), current_pos(1), current_pos(2));
-    gluSphere(sphere, 0.18, 50, 10);
+    gluSphere(sphere, 1.8, 50, 10);
 	drawCoordinate(current_rot);
     glPopMatrix();
 }
@@ -123,12 +123,11 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    if (human->mode == Tree::Mode::IK) {
+    if (human->mode == Tree::Mode::BVH) {
         // to track the root (only translation)
         vector<double> vec = (human->getRoot())->motion;
         int num_channels = (human->getRoot())->getNumChannels();
         glTranslated(-vec[(frame-1)*num_channels],
-//                      -vec[(frame-1)*num_channels+1],
                      0.0,
                      -vec[(frame-1)*num_channels+2]);
     	human->drawMyHuman(human->getRoot(), frame);
@@ -137,7 +136,6 @@ void display()
     else {
         human->drawMyHuman(human->getRoot(), frame);
         drawBall();
-        drawFloor();
     }
     glPopMatrix();
 	glutSwapBuffers();
@@ -151,7 +149,7 @@ void moveDesired(double speed, Vector3d trans, Vector3d rot) {
 
 void keyboardCB(unsigned char keyPressed, int x, int y)
 {
-	double trans_speed = 0.05;
+	double trans_speed = 0.5;
 	double rot_speed = 0.2;
 	Vector3d zero(0, 0, 0);
 	switch (keyPressed) {
@@ -303,7 +301,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
     
 	const string filename = "../MotionData/Trial002.bvh";
-    Tree::Mode mode = Tree::Mode::IK;
+    Tree::Mode mode = Tree::Mode::BVH;
     human = make_unique<Tree>(mode, filename);
     
     if (mode == Tree::Mode::IK) {
@@ -331,6 +329,7 @@ int main(int argc, char** argv)
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	glutDisplayFunc(display);
+    cout <<"time: " << human->motionData.frame_time << endl;
     glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
 	glutKeyboardFunc(keyboardCB);
 	glutReshapeFunc(reshape);
