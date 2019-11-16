@@ -19,7 +19,7 @@ src/camera.cpp
 src/tree.cpp
 src/node.cpp
 src/joint.cpp
-src/solver.cpp
+src/IK.cpp
 )
 
 target_link_libraries(main

@@ -23,7 +23,7 @@ struct MOTION
 class Tree {
   public:
 	enum Mode {BVH, IK};
-    Tree(Mode mode, const string _file = "MotionData/Trial000.bvh");
+    Tree(Mode mode, const string _file = "../MotionData/Trial000.bvh");
     Tree(const Tree& t);
     
     Joint* getRoot();

@@ -1,5 +1,5 @@
 #define GL_SILENCE_DEPRECATION
-#include "../include/solver.h"
+#include "../include/IK.h"
 
 Joint::Joint()
 {

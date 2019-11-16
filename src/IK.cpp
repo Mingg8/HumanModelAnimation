@@ -1,6 +1,6 @@
-#include "../include/solver.h"
+#include "../include/IK.h"
 
-Solver::Solver(Joint* joint, int _num_motion_channels) {
+IK::IK(Joint* joint, int _num_motion_channels) {
     num_motion_channels = _num_motion_channels;
     angle_vec.resize(num_motion_channels);
     angle_vec.setZero();
@@ -19,7 +19,7 @@ Solver::Solver(Joint* joint, int _num_motion_channels) {
     MatrixXd jacob = calculateJacobian();
 }
 
-VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
+VectorXd IK::solveIK(Vector3d desired_pos, Matrix3d desired_rot) {
     MatrixXd J = calculateJacobian();
     Matrix3d zero; zero.setZero();
     
@@ -70,7 +70,7 @@ VectorXd Solver::IK(Vector3d desired_pos, Matrix3d desired_rot) {
     return angle_vel;
 }
 
-void Solver::calculateSE3(Matrix4d &SE3,
+void IK::calculateSE3(Matrix4d &SE3,
         vector<Matrix4d> &SE3_vec) {
     SE3.setIdentity();
     Joint* j;
@@ -84,7 +84,7 @@ void Solver::calculateSE3(Matrix4d &SE3,
     current_rot = SE3.block(0, 0, 3, 3);
 }
 
-MatrixXd Solver::calculateJacobian() {
+MatrixXd IK::calculateJacobian() {
     Matrix4d EE_SE3;
     vector<Matrix4d> SE3_vec; // root to joint
     calculateSE3(EE_SE3, SE3_vec);
@@ -125,10 +125,10 @@ MatrixXd Solver::calculateJacobian() {
     return jacob;
 }
 
-Vector3d Solver::getCurrentPos() {
+Vector3d IK::getCurrentPos() {
     return current_pos;
 }
 
-Matrix3d Solver::getCurrentRot() {
+Matrix3d IK::getCurrentRot() {
     return current_rot;
 }

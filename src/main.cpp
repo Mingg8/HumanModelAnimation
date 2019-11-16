@@ -2,7 +2,7 @@
 
 #include "../include/camera.h"
 #include "../include/tree.h"
-#include "../include/solver.h"
+#include "../include/IK.h"
 #include <iostream>
 #include <memory>
 #ifdef __APPLE__
@@ -26,7 +26,7 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 static bool fullScreen = false;
 
 unique_ptr<Tree> human;
-unique_ptr<Solver> solver;
+unique_ptr<IK> ik;
 
 Vector3d desired_pos;
 Matrix3d desired_orientation;
@@ -49,10 +49,10 @@ void move(int millisec) {
         }
     } else {
         VectorXd ang_vel;
-        ang_vel = solver->IK(desired_pos, desired_orientation);
+        ang_vel = ik->solveIK(desired_pos, desired_orientation);
         human->setAngle(ang_vel, human->motionData.frame_time);
-        current_pos = solver->getCurrentPos();
-		current_rot = solver->getCurrentRot();
+        current_pos = ik->getCurrentPos();
+		current_rot = ik->getCurrentRot();
         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
         glutPostRedisplay();
     }
@@ -123,7 +123,7 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    if (human->mode == Tree::Mode::BVH) {
+    if (human->mode == Tree::Mode::IK) {
         // to track the root (only translation)
         vector<double> vec = (human->getRoot())->motion;
         int num_channels = (human->getRoot())->getNumChannels();
@@ -303,16 +303,16 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
     
 	const string filename = "../MotionData/Trial002.bvh";
-    Tree::Mode mode = Tree::Mode::BVH;
+    Tree::Mode mode = Tree::Mode::IK;
     human = make_unique<Tree>(mode, filename);
     
     if (mode == Tree::Mode::IK) {
         frame = -1;
 		int num = joint_selection();
-        solver = make_unique<Solver>((human->joints)[num],
+        ik = make_unique<IK>((human->joints)[num],
                                      human->motionData.num_motion_channels);
-        current_pos = solver->getCurrentPos();
-		current_rot = solver->getCurrentRot();
+        current_pos = ik->getCurrentPos();
+		current_rot = ik->getCurrentRot();
         desired_pos = current_pos;
 		desired_orientation = current_rot;
     } else {

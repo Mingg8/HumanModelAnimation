@@ -6,10 +6,10 @@
 using namespace Eigen;
 using namespace std;
 
-class Solver {
+class IK {
 public:
-    Solver(Joint* joint, int num_motion_channels);
-    VectorXd IK(Vector3d position, Matrix3d rot);
+    IK(Joint* joint, int num_motion_channels);
+    VectorXd solveIK(Vector3d position, Matrix3d rot);
     void calculateSE3(Matrix4d &SE3, vector<Matrix4d> &SE3_vec);
     Vector3d getCurrentPos();
     Matrix3d getCurrentRot();
