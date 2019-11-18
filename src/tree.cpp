@@ -6,12 +6,15 @@ Tree::Tree(Mode _mode, const string _file) {
     root_joint = new Joint();
     if (mode == BVH) {
         num_motion_channels = BVH::loadWhole(_file, motionData, root_joint);
-        BVH::sendTotDataToJoint(motionData, root_joint);
     } else if (mode == IK){
         num_motion_channels = BVH::loadOnlyJoint("../MotionData/Trial000.bvh", motionData, root_joint);
-        int i = 0;
-        setJointsVector(root_joint, i);
+    } else if (mode == BLENDING) {
+        num_motion_channels = BVH::loadOnlyJoint("../MotionData/Trial000.bvh", motionData, root_joint);
+    } else {
+        cout << "wrong mode!" << endl;
     }
+    int i = 0;
+    setJointsVector(root_joint, i);
 }
 
 void Tree::setJointsVector(Joint* joint, int &data_index) {
@@ -44,12 +47,24 @@ Joint* Tree::getRoot()
     return root_joint;
 }
 
-void Tree::setAngle(VectorXd ang_vel, double sec) {
+void Tree::setAngVel(VectorXd ang_vel) {
+    int index = 0;
+    double sec = motionData.frame_time;
+    for (int i = 0; i < joints.size(); i++) {
+        int channel_num = joints[i]->getNumChannels();
+        for (int j = 0; j < channel_num; j++) {
+            (joints[i]->current_angle)(j) += ang_vel(index+j) * sec * 180.0 / M_PI;
+        }
+        index += channel_num;
+    }
+}
+
+void Tree::setAng(VectorXd ang) {
     int index = 0;
     for (int i = 0; i < joints.size(); i++) {
         int channel_num = joints[i]->getNumChannels();
         for (int j = 0; j < channel_num; j++) {
-            (joints[i]->current_angle)(j) += ang_vel(index+j)*sec;
+            (joints[i]->current_angle)(j) = ang(index + j);
         }
         index += channel_num;
     }

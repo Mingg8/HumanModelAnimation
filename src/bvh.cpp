@@ -148,27 +148,12 @@ void BVH::loadMotion(std::istream& stream, MOTION& motionData, int &_num_motion_
     }
 }
 
-void BVH::sendTotDataToJoint(MOTION motion, Joint* root) {
-    for (int frame = 0; frame < motion.num_frames; frame++) {
-        int data_index = 0;
-        sendDataToJoint(root, motion, frame, data_index);
-    }
-}
-
-void BVH::sendDataToJoint(Joint* joint, MOTION& motion, int frame, int &data_index) {
-    for (int i=0; i<joint->getNumChannels(); i++)
-        joint->motion.push_back(motion.data(frame,data_index+i));
-    data_index = data_index + joint->getNumChannels();
-    vector<Joint*> children = joint->getChildren();
-    for (int i=0; i<children.size(); i++) {
-        sendDataToJoint(children[i], motion, frame, data_index);
-    }
-}
 
 int BVH::loadWhole(const std::string& filename, MOTION& motion, Joint*& root)
 {
     std::fstream file;
     file.open(filename.c_str(), std::ios_base::in);
+    int num_motion_channels = 0;
     
     if(file.is_open()) {
         std::string line;
@@ -180,7 +165,6 @@ int BVH::loadWhole(const std::string& filename, MOTION& motion, Joint*& root)
             while(file.good()) {
                 file >> tmp;
                 if (trim(tmp)=="ROOT") {
-                    num_motion_channels = 0;
                     root = loadJoint(file, nullptr, num_motion_channels);
                 }
                 else if(trim(tmp) == "MOTION")
@@ -199,6 +183,7 @@ int BVH::loadOnlyJoint(const std::string& filename, MOTION& motion, Joint*& root
 {
     std::fstream file;
     file.open(filename.c_str(), std::ios_base::in);
+    int num_motion_channels = 0;
     
     if(file.is_open()) {
         std::string line;
@@ -210,7 +195,6 @@ int BVH::loadOnlyJoint(const std::string& filename, MOTION& motion, Joint*& root
             while(file.good()) {
                 file >> tmp;
                 if (trim(tmp)=="ROOT") {
-                    num_motion_channels = 0;
                     root = loadJoint(file, nullptr, num_motion_channels);
                 }
             }
@@ -222,7 +206,7 @@ int BVH::loadOnlyJoint(const std::string& filename, MOTION& motion, Joint*& root
     }
     return num_motion_channels;
 }
-void BVH::loadOnlyMotion(const std::string& filename, MOTION& motion, Joint* root)
+void BVH::loadOnlyMotion(const std::string& filename, MOTION& motion, int num_motion_channels)
 {
     std::fstream file;
     file.open(filename.c_str(), std::ios_base::in);

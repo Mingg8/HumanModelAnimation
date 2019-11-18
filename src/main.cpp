@@ -1,8 +1,9 @@
 #define GL_SILENCE_DEPRECATION
+#include "tree.h"
+#include "camera.h"
+#include "IK.h"
+#include "blend.h"
 
-#include "../include/camera.h"
-#include "../include/tree.h"
-#include "../include/IK.h"
 #include <iostream>
 #include <memory>
 #ifdef __APPLE__
@@ -10,10 +11,17 @@
 #else
     #include <GL/glut.h>
 #endif
-
 using namespace std;
 
+Tree::Mode mode = Tree::Mode::BVH;
+unique_ptr<Tree> human;
+unique_ptr<IK> ik;
+unique_ptr<blending::Blending> blend;
 static Camera camera;
+
+using namespace std;
+using namespace Eigen;
+
 
 static unsigned int width = 700;
 static unsigned int height = 700;
@@ -25,54 +33,34 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 
 static bool fullScreen = false;
 
-Tree::Mode mode = Tree::Mode::BVH;
-
-unique_ptr<Tree> human;
-unique_ptr<IK> ik;
-
-Vector3d desired_pos;
-Matrix3d desired_orientation;
-Vector3d current_pos;
-Matrix3d current_rot;
-
 int frame = 0;
 
-void reshape(int w, int h)
-{
-	camera.resize(w, h);
+void drawCoordinate(Matrix3d rot, double size) {
+    AngleAxisd new_aa(rot);
+    Vector3d axis = new_aa.axis();
+    glRotated(new_aa.angle()*180.0/M_PI, axis(0), axis(1), axis(2));
+    glBegin(GL_LINES);
+    glVertex3d(0, 0, 0);
+    glVertex3d(size, 0, 0);
+    glVertex3d(0, 0, 0);
+    glVertex3d(0, size, 0);
+    glVertex3d(0, 0, 0);
+    glVertex3d(0, 0, size);
+    glEnd();
+    glPopMatrix();
 }
 
-void move(int millisec) {
-    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BVH) {
-        if (frame < human->motionData.num_frames) {
-            frame++;
-            glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
-            glutPostRedisplay();
-        }
-    } else if (mode == Tree::Mode::IK) {
-        VectorXd ang_vel;
-        ang_vel = ik->solveIK(desired_pos, desired_orientation);
-        human->setAngle(ang_vel, human->motionData.frame_time);
-        current_pos = ik->getCurrentPos();
-		current_rot = ik->getCurrentRot();
-        glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
-        glutPostRedisplay();
-    }
-}
-
-void drawCoordinate(Matrix3d rot) {
-	AngleAxisd new_aa(rot);
-	Vector3d axis = new_aa.axis();
-	glRotated(new_aa.angle()*180.0/M_PI, axis(0), axis(1), axis(2));
-	glBegin(GL_LINES);
-	glVertex3d(0, 0, 0);
-	glVertex3d(10, 0, 0);
-	glVertex3d(0, 0, 0);
-	glVertex3d(0, 10, 0);
-	glVertex3d(0, 0, 0);
-	glVertex3d(0, 0, 10);
-	glEnd();
-	glPopMatrix();
+void drawBallWithCoord(Vector3d pos, Matrix3d rot, Vector3d color) {
+    GLUquadric *sphere;
+    sphere = gluNewQuadric();
+    
+    // Desired position (red)
+    glColor3d(color(0), color(1), color(2));
+    glPushMatrix();
+    glTranslated(pos(0), pos(1), pos(2));
+    gluSphere(sphere, 1.8, 50, 10);
+    drawCoordinate(rot, 10.0);
+    glPopMatrix();
 }
 
 void drawFloor() {
@@ -97,26 +85,30 @@ void drawFloor() {
     glEnd();
 }
 
-void drawBall() {
-    GLUquadric *sphere;
-    sphere = gluNewQuadric();
-    
-    // Desired position (red)
-    glColor3f(1, 0.0, 0.0);
-    glPushMatrix();
-    glTranslated(desired_pos(0), desired_pos(1), desired_pos(2));
-    gluSphere(sphere, 1.8, 50, 10);
-	drawCoordinate(desired_orientation);
-    glPopMatrix();
-    
-    // current position (green)
-    glColor3f(0.0, 1.0, 0.0);
-    glPushMatrix();
-    glTranslated(current_pos(0), current_pos(1), current_pos(2));
-    gluSphere(sphere, 1.8, 50, 10);
-	drawCoordinate(current_rot);
-    glPopMatrix();
+
+void reshape(int w, int h)
+{
+	camera.resize(w, h);
 }
+
+void move(int millisec) {
+    if (mode == Tree::Mode::BVH) {
+        if (frame < human->motionData.num_frames) {
+            frame++;
+            human->setAng(human->motionData.data.row(frame));
+            glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
+            glutPostRedisplay();
+        }
+    } else if (mode == Tree::Mode::IK) {
+        VectorXd ang_vel;
+        ang_vel = ik->solveIK();
+        human->setAngVel(ang_vel);
+        glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
+        glutPostRedisplay();
+    }
+}
+
+
 
 void display()
 {
@@ -125,38 +117,22 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    if (mode == Tree::Mode::BVH) {
-        // to track the root (only translation)
-        vector<double> vec = (human->getRoot())->motion;
-        int num_channels = (human->getRoot())->getNumChannels();
-        glTranslated(-vec[(frame-1)*num_channels],
-                     0.0,
-                     -vec[(frame-1)*num_channels+2]);
-    	human->drawMyHuman(human->getRoot(), frame);
+    
+    VectorXd vec = (human->getRoot())->current_angle;
+    glTranslated(-vec(0),
+                 0.0,
+                 -vec(2));
+    human->drawMyHuman(human->getRoot(), frame);
+    
+    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BLENDING) {
         drawFloor();
     }
     else if (mode == Tree::Mode::IK) {
-        human->drawMyHuman(human->getRoot(), frame);
-        drawBall();
-    } else if (mode == Tree::Mode::BLENDING) {
-        // to track the root (only translation)
-        vector<double> vec = (human->getRoot())->motion;
-        int num_channels = (human->getRoot())->getNumChannels();
-        glTranslated(-vec[(frame-1)*num_channels],
-                     0.0,
-                     -vec[(frame-1)*num_channels+2]);
-        
-        human->drawMyHuman(human->getRoot(), frame);
-        drawFloor();
+        drawBallWithCoord(ik->getCurPos(), ik->getCurRot(), Vector3d(0.1, 0.4, 0.3));
+        drawBallWithCoord(ik->getDesPos(), ik->getDesRot(), Vector3d(0.3, 0.2, 0.7));
     }
     glPopMatrix();
 	glutSwapBuffers();
-}
-
-void moveDesired(double speed, Vector3d trans, Vector3d rot) {
-	AngleAxisd aa(speed, rot);
-	desired_pos = desired_pos + speed * trans;
-	desired_orientation = desired_orientation * aa.toRotationMatrix();
 }
 
 void keyboardCB(unsigned char keyPressed, int x, int y)
@@ -181,23 +157,23 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
     if (mode == Tree::Mode::IK) {
         switch (keyPressed) {
             case 'a':
-                moveDesired(trans_speed, Vector3d(-1, 0, 0), zero); break;
+                ik->moveDesired(trans_speed, Vector3d(-1, 0, 0), zero); break;
             case 'd':
-                moveDesired(trans_speed, Vector3d(1, 0, 0), zero); break;
+                ik->moveDesired(trans_speed, Vector3d(1, 0, 0), zero); break;
             case 'w':
-                moveDesired(trans_speed, Vector3d(0, 1, 0), zero); break;
+                ik->moveDesired(trans_speed, Vector3d(0, 1, 0), zero); break;
             case 's':
-                moveDesired(trans_speed, Vector3d(0, -1, 0), zero); break;
+                ik->moveDesired(trans_speed, Vector3d(0, -1, 0), zero); break;
             case 'j':
-                moveDesired(trans_speed, Vector3d(0, 0, 1), zero); break;
+                ik->moveDesired(trans_speed, Vector3d(0, 0, 1), zero); break;
             case 'k':
-                moveDesired(trans_speed, Vector3d(0, 0, -1), zero); break;
+                ik->moveDesired(trans_speed, Vector3d(0, 0, -1), zero); break;
             case 'x':
-                moveDesired(rot_speed, zero, Vector3d(1, 0, 0)); break;
+                ik->moveDesired(rot_speed, zero, Vector3d(1, 0, 0)); break;
             case 'y':
-                moveDesired(rot_speed, zero, Vector3d(0, 1, 0)); break;
+                ik->moveDesired(rot_speed, zero, Vector3d(0, 1, 0)); break;
             case 'z':
-                moveDesired(rot_speed, zero, Vector3d(0, 0, 1)); break;
+                ik->moveDesired(rot_speed, zero, Vector3d(0, 0, 1)); break;
         }
     } else if (mode == Tree::Mode::BLENDING) {
         switch (keyPressed) {
@@ -206,7 +182,7 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 #warning    set human->motionData (+blend)
         }
     }
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 void mouseCB(int button, int state, int x, int y)
@@ -245,7 +221,7 @@ void mouseCB(int button, int state, int x, int y)
 		}
 	}
 
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 void motionCB(int x, int y)
@@ -267,7 +243,7 @@ void motionCB(int x, int y)
 		lastZoom = y;
 	}
 
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 void manual()
@@ -303,12 +279,14 @@ int main(int argc, char** argv)
         cout << (human->joints)[num] << endl;
         ik = make_unique<IK>((human->joints)[num],
                                      human->num_motion_channels);
-        current_pos = ik->getCurrentPos();
-		current_rot = ik->getCurrentRot();
-        desired_pos = current_pos;
-		desired_orientation = current_rot;
     } else if (mode == Tree::Mode::BVH) {
         frame = 0;
+    } else if (mode == Tree::Mode::BLENDING) {
+        frame = -1;
+        blend = make_unique<blending::Blending>(human->num_motion_channels);
+        VectorXd zero_ang(human->num_motion_channels);
+        zero_ang.setZero();
+        human->setAng(zero_ang);
     }
     
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);

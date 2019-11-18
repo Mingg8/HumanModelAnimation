@@ -76,13 +76,7 @@ void Joint::rotate(int frame)
 {
     for (int i = 0; i < num_channels; i++) {
         double angle;
-        if (frame == -1) {
-            // controlling manually
-            angle = current_angle(i)*180.0/M_PI;
-        } else {
-            // load bvh
-            angle = motion[(frame-1)*num_channels+i];
-        }
+        angle = current_angle(i);
         
         if (channels_order[i] == DIR::Xrot) {
             glRotated(angle, 1, 0, 0);
@@ -112,7 +106,7 @@ Matrix4d Joint::getSE3() {
     mat(2, 3) = offset(2);
 
     for (int i = 0; i < num_channels; i++) {
-        double angle = current_angle(i);
+        double angle = current_angle(i) / 180.0 * M_PI;
         Matrix4d tmp;
         tmp.setIdentity();
         if (channels_order[i] == DIR::Xrot) {

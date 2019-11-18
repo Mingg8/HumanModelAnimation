@@ -8,6 +8,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 
 include_directories(
+    include
     /usr/local/include/eigen3/
     ${OPENGL_INCLUDE_DIRS}
     ${GLUT_INCLUDE_DIRS}
@@ -21,6 +22,7 @@ src/node.cpp
 src/joint.cpp
 src/IK.cpp
 src/bvh.cpp
+src/blend.cpp
 )
 
 target_link_libraries(main
