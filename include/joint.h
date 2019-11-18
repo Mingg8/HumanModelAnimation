@@ -18,30 +18,30 @@ using namespace Eigen;
 class Joint
 {
  public:
-   Joint();
-   void transform(int frame);
-   void transform();
+    Joint();
+    void transform(int frame);
+    void transform();
 
-   void setParent(Joint *parent);
-   void setNode(Node*);
-   Node* getNode();
-   Joint* getParent();
-   void addToChildren(Joint* child);
-   vector<Joint*> getChildren();
+    void setParent(Joint *parent);
+    void setNode(Node*);
+    Node* getNode();
+    Joint* getParent();
+    void addToChildren(Joint* child);
+    vector<Joint*> getChildren();
    
-   const char* joint_name;
-   Vector3d offset;
-   void setOffset(Vector3d offset);
-   Matrix4d getSE3();
+    const char* joint_name;
+    Vector3d offset;
+    void setOffset(Vector3d offset);
+    Matrix4d getSE3();
 
-   // channel
-   enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
-   void addToChannel(DIR);
+    // channel
+    enum DIR {Xrot, Yrot, Zrot, Xtrans, Ytrans, Ztrans};
+    void addToChannel(DIR);
     int getNumChannels();
     void setNumChannels(int num);
-   int channel_start_idx;
-   vector<double> motion;
-   VectorXd current_angle;
+    int channel_start_idx;
+    vector<double> motion;
+    VectorXd current_angle;
     vector<DIR> channels_order;
     
  private:

@@ -20,6 +20,7 @@ src/tree.cpp
 src/node.cpp
 src/joint.cpp
 src/IK.cpp
+src/bvh.cpp
 )
 
 target_link_libraries(main

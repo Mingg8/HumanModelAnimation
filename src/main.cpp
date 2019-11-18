@@ -25,6 +25,8 @@ static int lastX = 0, lastY = 0, lastZoom = 0;
 
 static bool fullScreen = false;
 
+Tree::Mode mode = Tree::Mode::BVH;
+
 unique_ptr<Tree> human;
 unique_ptr<IK> ik;
 
@@ -41,13 +43,13 @@ void reshape(int w, int h)
 }
 
 void move(int millisec) {
-    if (human->mode == Tree::Mode::BVH) {
+    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BVH) {
         if (frame < human->motionData.num_frames) {
             frame++;
             glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
             glutPostRedisplay();
         }
-    } else {
+    } else if (mode == Tree::Mode::IK) {
         VectorXd ang_vel;
         ang_vel = ik->solveIK(desired_pos, desired_orientation);
         human->setAngle(ang_vel, human->motionData.frame_time);
@@ -123,7 +125,7 @@ void display()
 	camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
-    if (human->mode == Tree::Mode::BVH) {
+    if (mode == Tree::Mode::BVH) {
         // to track the root (only translation)
         vector<double> vec = (human->getRoot())->motion;
         int num_channels = (human->getRoot())->getNumChannels();
@@ -133,9 +135,19 @@ void display()
     	human->drawMyHuman(human->getRoot(), frame);
         drawFloor();
     }
-    else {
+    else if (mode == Tree::Mode::IK) {
         human->drawMyHuman(human->getRoot(), frame);
         drawBall();
+    } else if (mode == Tree::Mode::BLENDING) {
+        // to track the root (only translation)
+        vector<double> vec = (human->getRoot())->motion;
+        int num_channels = (human->getRoot())->getNumChannels();
+        glTranslated(-vec[(frame-1)*num_channels],
+                     0.0,
+                     -vec[(frame-1)*num_channels+2]);
+        
+        human->drawMyHuman(human->getRoot(), frame);
+        drawFloor();
     }
     glPopMatrix();
 	glutSwapBuffers();
@@ -165,25 +177,35 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 		case 'q':
 			exit(0);
 			break;
-		case 'a':
-			moveDesired(trans_speed, Vector3d(-1, 0, 0), zero); break;
-		case 'd':
-			moveDesired(trans_speed, Vector3d(1, 0, 0), zero); break;
-		case 'w':
-			moveDesired(trans_speed, Vector3d(0, 1, 0), zero); break;
-		case 's':
-			moveDesired(trans_speed, Vector3d(0, -1, 0), zero); break;
-		case 'j':
-			moveDesired(trans_speed, Vector3d(0, 0, 1), zero); break;
-		case 'k':
-			moveDesired(trans_speed, Vector3d(0, 0, -1), zero); break;
-		case 'x':
-			moveDesired(rot_speed, zero, Vector3d(1, 0, 0)); break;
-		case 'y':
-			moveDesired(rot_speed, zero, Vector3d(0, 1, 0)); break;
-		case 'z':
-			moveDesired(rot_speed, zero, Vector3d(0, 0, 1)); break;
-	}
+    }
+    if (mode == Tree::Mode::IK) {
+        switch (keyPressed) {
+            case 'a':
+                moveDesired(trans_speed, Vector3d(-1, 0, 0), zero); break;
+            case 'd':
+                moveDesired(trans_speed, Vector3d(1, 0, 0), zero); break;
+            case 'w':
+                moveDesired(trans_speed, Vector3d(0, 1, 0), zero); break;
+            case 's':
+                moveDesired(trans_speed, Vector3d(0, -1, 0), zero); break;
+            case 'j':
+                moveDesired(trans_speed, Vector3d(0, 0, 1), zero); break;
+            case 'k':
+                moveDesired(trans_speed, Vector3d(0, 0, -1), zero); break;
+            case 'x':
+                moveDesired(rot_speed, zero, Vector3d(1, 0, 0)); break;
+            case 'y':
+                moveDesired(rot_speed, zero, Vector3d(0, 1, 0)); break;
+            case 'z':
+                moveDesired(rot_speed, zero, Vector3d(0, 0, 1)); break;
+        }
+    } else if (mode == Tree::Mode::BLENDING) {
+        switch (keyPressed) {
+#warning change motion!!
+#warning if motion changed, set frame to zero
+#warning    set human->motionData (+blend)
+        }
+    }
 	glutPostRedisplay();
 }
 
@@ -257,63 +279,35 @@ void manual()
 	cout << "    zoom   :  ctrl + left click & drag" << std::endl;
 	cout << " translate :  shift + left click & drag" << std::endl;
 	cout << "  'f' key  :  full screen" << std::endl;
-
+    
+    if (mode == Tree::Mode::IK) {
 	cout << " 'a' & 'd' :  move desired position -x, +x (spatial frame)" << std::endl;
 	cout << " 'w' & 's' :  move desired position +y, -y" << endl;
 	cout << " 'j' & 'k' :  move desired position +z, -z" << endl;
 	cout << "'x','y','z':  rotate desired orientation (body frame)" << endl;
+    }
 	cout << std::endl;
 	cout << "=========================================" << std::endl;
-}
-
-int joint_selection()
-{
-	cout << "===============joint selection=============" << endl;
-	cout << endl;
-	cout << "     left knee   :  2  " << endl;
-	cout << "     left ankle  :  3  " << endl;
-	cout << "     left foot   :  4  " << endl;
-	cout << "     left toe    :  5  " << endl;
-	cout << "    right knee   :  6  " << endl;
-	cout << "    right angle  :  7  " << endl;
-	cout << "    right foot   :  8  " << endl;
-	cout << "    right toe    :  9  " << endl;
-	cout << "        head     :  12 " << endl;
-	cout << "    left shoulder:  15  " << endl;
-	cout << "    left elbow   :  16  " << endl;
-	cout << "    left wrist   :  17  " << endl;
-	cout << "    left hand    :  18  " << endl;
-	cout << "   right shoulder:  20  " << endl;
-	cout << "   right elbow   :  21  " << endl;
-	cout << "   right wrist   :  22  " << endl;
-	cout << "   right hand    :  23  " << endl;
-	cout << endl;
-	cout << "===========================================" << endl;
-	cout << " Enter the joint number you want to control : ";
-
-	int selection;
-	cin >> selection;
-	return selection;
 }
 
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
     
-	const string filename = "../MotionData/Trial002.bvh";
-    Tree::Mode mode = Tree::Mode::BVH;
+	const string filename = "../MotionData2/cmu/16_01_jump.bvh";
     human = make_unique<Tree>(mode, filename);
     
     if (mode == Tree::Mode::IK) {
         frame = -1;
-		int num = joint_selection();
+        int num = IK::joint_selection();
+        cout << (human->joints)[num] << endl;
         ik = make_unique<IK>((human->joints)[num],
-                                     human->motionData.num_motion_channels);
+                                     human->num_motion_channels);
         current_pos = ik->getCurrentPos();
 		current_rot = ik->getCurrentRot();
         desired_pos = current_pos;
 		desired_orientation = current_rot;
-    } else {
+    } else if (mode == Tree::Mode::BVH) {
         frame = 0;
     }
     
@@ -329,7 +323,6 @@ int main(int argc, char** argv)
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	glutDisplayFunc(display);
-    cout <<"time: " << human->motionData.frame_time << endl;
     glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
 	glutKeyboardFunc(keyboardCB);
 	glutReshapeFunc(reshape);

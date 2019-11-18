@@ -13,6 +13,7 @@ public:
     void calculateSE3(Matrix4d &SE3, vector<Matrix4d> &SE3_vec);
     Vector3d getCurrentPos();
     Matrix3d getCurrentRot();
+    static int joint_selection();
     
 private:
     vector<Joint*> joint_vec;

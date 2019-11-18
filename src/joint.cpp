@@ -5,11 +5,13 @@ Joint::Joint()
 {
     joint_name = "";
     parent = nullptr;
+    channel_start_idx = -1;
 }
 
 void Joint::setParent(Joint *the_parent) {
     parent = the_parent;
-    parent->addToChildren(this);
+    if (parent != nullptr)
+        parent->addToChildren(this);
 }
 
 Joint* Joint::getParent() {

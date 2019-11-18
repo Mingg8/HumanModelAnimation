@@ -18,8 +18,7 @@ using namespace Eigen;
 class Node
 {
  public:
-    Node() {};
-    Node(int the_num);
+    Node();
     void addToChildren(Node *child);
     
     vector<Node *> getChildren();
@@ -32,13 +31,12 @@ class Node
 
  private:
  protected:
-    int num;
     NodeType type;
 };
 
 class SphereNode: public Node {
  public:
-    SphereNode(int the_num, double r);
+    SphereNode(double r);
     void draw();
     void resize(Vector3d offset);
  private:
@@ -48,7 +46,7 @@ class SphereNode: public Node {
 
 class CylinderNode: public Node {
  public:
-    CylinderNode(int the_num, double _default);
+    CylinderNode(double _default);
     void draw();
     void resize(Vector3d offset);
     
@@ -62,7 +60,7 @@ class CylinderNode: public Node {
 
 class BoxNode: public Node {
  public:
-    BoxNode(int the_num, double _default);
+    BoxNode(double _default);
     void draw();
     void draw_old();
     void resize(Vector3d offset);

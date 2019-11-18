@@ -1,23 +1,14 @@
 #define GL_SILENCE_DEPRECATION
 #include "../include/node.h"
-
-Node::Node(int _num)
-{
-    num = _num;
+Node::Node() {
+    
 }
-
-int Node::getId()
-{
-    return num;
-}
-
 void Node::draw() {
 }
 
 void Node::resize(Vector3d offset) {}
 
-SphereNode::SphereNode(int the_num, double r) {
-    num = the_num;
+SphereNode::SphereNode(double r) {
     radius = r;
     type = NodeType::SPHERE;
 }
@@ -36,8 +27,7 @@ void SphereNode::resize(Vector3d _offset) {
     radius = _offset.norm()/2.0;
 }
 
-CylinderNode::CylinderNode(int the_num, double _default) {
-    num = the_num;
+CylinderNode::CylinderNode(double _default) {
     radius = _default;
     length = _default;
     type = NodeType::CYLINDER;
@@ -65,7 +55,7 @@ void CylinderNode::resize(Vector3d _offset) {
     angle = acos(scalar) /M_PI * 180.0;
 }
 
-BoxNode::BoxNode(int the_num, double _default) {
+BoxNode::BoxNode(double _default) {
     minX = -_default;
     maxX = _default;
     minY = -_default;
@@ -73,7 +63,6 @@ BoxNode::BoxNode(int the_num, double _default) {
     minZ = -_default;
     maxZ = _default;
     
-    num = the_num;
     type = NodeType::BOX;
 }
 

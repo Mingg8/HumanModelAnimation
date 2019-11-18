@@ -132,3 +132,34 @@ Vector3d IK::getCurrentPos() {
 Matrix3d IK::getCurrentRot() {
     return current_rot;
 }
+
+
+int IK::joint_selection()
+{
+    cout << "===============joint selection=============" << endl;
+    cout << endl;
+    cout << "     left knee   :  2  " << endl;
+    cout << "     left ankle  :  3  " << endl;
+    cout << "     left foot   :  4  " << endl;
+    cout << "     left toe    :  5  " << endl;
+    cout << "    right knee   :  6  " << endl;
+    cout << "    right angle  :  7  " << endl;
+    cout << "    right foot   :  8  " << endl;
+    cout << "    right toe    :  9  " << endl;
+    cout << "        head     :  12 " << endl;
+    cout << "    left shoulder:  15  " << endl;
+    cout << "    left elbow   :  16  " << endl;
+    cout << "    left wrist   :  17  " << endl;
+    cout << "    left hand    :  18  " << endl;
+    cout << "   right shoulder:  20  " << endl;
+    cout << "   right elbow   :  21  " << endl;
+    cout << "   right wrist   :  22  " << endl;
+    cout << "   right hand    :  23  " << endl;
+    cout << endl;
+    cout << "===========================================" << endl;
+    cout << " Enter the joint number you want to control : ";
+    
+    int selection;
+    cin >> selection;
+    return selection;
+}
