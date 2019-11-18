@@ -1,7 +1,4 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <math.h>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -9,6 +6,9 @@
 #include <GL/glut.h>
 #endif
 
+#include <iostream>
+#include <vector>
+#include <math.h>
 #include <Eigen/Dense>
 
 #define M_PI 3.141592

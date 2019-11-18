@@ -17,9 +17,11 @@ IK::IK(Joint* joint, int _num_motion_channels) {
     p_gain = 0.6;
     
     MatrixXd jacob = calculateJacobian();
+    des_pos = cur_pos;
+    des_rot = cur_rot;
 }
 
-VectorXd IK::solveIK(Vector3d desired_pos, Matrix3d desired_rot) {
+VectorXd IK::solveIK() {
     MatrixXd J = calculateJacobian();
     Matrix3d zero; zero.setZero();
     
@@ -33,8 +35,8 @@ VectorXd IK::solveIK(Vector3d desired_pos, Matrix3d desired_rot) {
     
     // velocity in Cartesian
     MatrixXd car_vel(6, 1);
-    car_vel.block(0, 0, 3, 1) = p_gain * (desired_pos - current_pos);
-    Matrix3d rot_diff = desired_rot * current_rot.transpose();
+    car_vel.block(0, 0, 3, 1) = p_gain * (des_pos - cur_pos);
+    Matrix3d rot_diff = des_rot * cur_rot.transpose();
     AngleAxisd diffAngleAxis(rot_diff);
     car_vel.block(3, 0, 3, 1) = diffAngleAxis.angle() * diffAngleAxis.axis();
     
@@ -60,8 +62,7 @@ VectorXd IK::solveIK(Vector3d desired_pos, Matrix3d desired_rot) {
     for (int i = 0; i < 12; i++) weight(arr_5[i], arr_5[i]) = 625;
     
     // avoid sigularity
-    double det = (J*weight*J_trans).determinant();
-    if (abs(det) < 0.01) {
+    if (abs((J*weight*J_trans).determinant()) < 0.01) {
         angle_vel = J_trans * car_vel;
     } else {
         pseudo_inverse = weight * J_trans * (J*weight*J_trans).inverse();
@@ -70,8 +71,7 @@ VectorXd IK::solveIK(Vector3d desired_pos, Matrix3d desired_rot) {
     return angle_vel;
 }
 
-void IK::calculateSE3(Matrix4d &SE3,
-        vector<Matrix4d> &SE3_vec) {
+void IK::calculateSE3(Matrix4d &SE3, vector<Matrix4d> &SE3_vec) {
     SE3.setIdentity();
     Joint* j;
     for (size_t i = 0 ; i < joint_vec.size(); i++) {
@@ -80,8 +80,8 @@ void IK::calculateSE3(Matrix4d &SE3,
         SE3 = SE3 * mat;
         SE3_vec.push_back(SE3);
     }
-    current_pos = SE3.block(0, 3, 3, 1);
-    current_rot = SE3.block(0, 0, 3, 3);
+    cur_pos = SE3.block(0, 3, 3, 1);
+    cur_rot = SE3.block(0, 0, 3, 3);
 }
 
 MatrixXd IK::calculateJacobian() {
@@ -102,9 +102,7 @@ MatrixXd IK::calculateJacobian() {
             angle_vec(index) = j->current_angle(k);
             index++;
             
-            Vector3d v, w;
             Vector3d axis;
-            
             if (j->channels_order[k] == Joint::DIR::Xrot) {
                 axis << 1, 0, 0;
             } else if (j->channels_order[k] == Joint::DIR::Yrot) {
@@ -115,8 +113,8 @@ MatrixXd IK::calculateJacobian() {
                 axis << 0, 0, 0;
             }
             Vector3d r = EE_SE3.block(0, 3, 3, 1) - joint_SE3.block(0, 3, 3, 1);
-            v = joint_SE3.block(0, 0, 3, 3) * (axis.cross(r));
-            w = joint_SE3.block(0, 0, 3, 3) * axis;
+            Vector3d v = joint_SE3.block(0, 0, 3, 3) * (axis.cross(r));
+            Vector3d w = joint_SE3.block(0, 0, 3, 3) * axis;
 
             jacob.block(0, channel_idx+k, 3, 1) = v;
             jacob.block(3, channel_idx+k, 3, 1) = w;
@@ -124,15 +122,6 @@ MatrixXd IK::calculateJacobian() {
     }
     return jacob;
 }
-
-Vector3d IK::getCurrentPos() {
-    return current_pos;
-}
-
-Matrix3d IK::getCurrentRot() {
-    return current_rot;
-}
-
 
 int IK::joint_selection()
 {
@@ -162,4 +151,23 @@ int IK::joint_selection()
     int selection;
     cin >> selection;
     return selection;
+}
+
+void IK::moveDesired(double speed, Vector3d trans, Vector3d rot) {
+    AngleAxisd aa(speed, rot);
+    des_pos = des_pos + speed * trans;
+    des_rot = des_rot * aa.toRotationMatrix();
+}
+
+Vector3d IK::getCurPos() {
+    return cur_pos;
+}
+Vector3d IK::getDesPos() {
+    return des_pos;
+}
+Matrix3d IK::getCurRot() {
+    return cur_rot;
+}
+Matrix3d IK::getDesRot() {
+    return des_rot;
 }

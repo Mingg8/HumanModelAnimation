@@ -1,16 +1,17 @@
 #pragma once
-#include <Eigen/Dense>
-#include <iostream>
-#include <math.h>
-#include <chrono>
-
-#include "node.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
+
+#include <Eigen/Dense>
+#include <iostream>
+#include <math.h>
+#include <chrono>
+
+#include "node.h"
 
 using namespace std;
 using namespace Eigen;
@@ -40,7 +41,6 @@ class Joint
     int getNumChannels();
     void setNumChannels(int num);
     int channel_start_idx;
-    vector<double> motion;
     VectorXd current_angle;
     vector<DIR> channels_order;
     
