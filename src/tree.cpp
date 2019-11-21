@@ -31,7 +31,8 @@ void Tree::drawMyHuman(Joint *joint, int frame)
 {
     glPushMatrix();
     joint->transform(frame);
-    if (joint->joint_name != "EndSite") {
+    const char endsite[] = "EndSite";
+    if (strcmp(joint->joint_name, endsite) != 0) {
         (joint->getNode())->draw();
     }
     vector<Joint*> children_vec = joint->getChildren();
