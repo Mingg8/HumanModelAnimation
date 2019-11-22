@@ -23,6 +23,7 @@ class Tree {
     MOTION motionData;
     Mode mode;
     vector<Joint*> joints;
+    unsigned int num_motion_channels = 0; // number of motion channels
     
     Joint* getRoot();
     void setAngVel(VectorXd angle);
@@ -30,8 +31,8 @@ class Tree {
     void setUpMyHuman();
     void setUpMyHuman2();
     void drawMyHuman(Joint* joint, int frame = -1);
+    void setMotion(MOTION _motion);
 
-    unsigned int num_motion_channels = 0; // number of motion channels
   private:
     Joint* root_joint;
     void setJointsVector(Joint* joint, int &data_index);

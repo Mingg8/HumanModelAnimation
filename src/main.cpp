@@ -11,17 +11,15 @@
 #else
     #include <GL/glut.h>
 #endif
-using namespace std;
-
-Tree::Mode mode = Tree::Mode::BVH;
-unique_ptr<Tree> human;
-unique_ptr<IK> ik;
-unique_ptr<blending::Blending> blend;
-static Camera camera;
 
 using namespace std;
 using namespace Eigen;
 
+Tree::Mode mode = Tree::Mode::BLENDING;
+unique_ptr<Tree> human;
+unique_ptr<IK> ik;
+unique_ptr<blending::Blending> blend;
+static Camera camera;
 
 static unsigned int width = 700;
 static unsigned int height = 700;
@@ -86,18 +84,15 @@ void drawFloor() {
 }
 
 
-void reshape(int w, int h)
-{
+void reshape(int w, int h) {
 	camera.resize(w, h);
 }
 
 void move(int millisec) {
-    if (mode == Tree::Mode::BVH) {
-        if (frame < human->motionData.num_frames) {
-            frame++;
+    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BLENDING) {
+        if (frame < human->motionData.num_frames - 1) {
             human->setAng(human->motionData.data.row(frame));
-            glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
-            glutPostRedisplay();
+            frame++;
         }
     } else if (mode == Tree::Mode::IK) {
         VectorXd ang_vel;
@@ -106,15 +101,16 @@ void move(int millisec) {
         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
         glutPostRedisplay();
     }
+    glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
+    glutPostRedisplay();
 }
 
 
 
-void display()
-{
+void display() {
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	camera.apply();
+    camera.apply();
     glColor3f(0.2, 0.45, 0.6);
     glPushMatrix();
     
@@ -177,6 +173,10 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
         }
     } else if (mode == Tree::Mode::BLENDING) {
         switch (keyPressed) {
+            case 'r':
+                MOTION motion = blend->blendMotion();
+                frame = 0;
+                human->setMotion(motion);
 #warning change motion!!
 #warning if motion changed, set frame to zero
 #warning    set human->motionData (+blend)
@@ -232,8 +232,8 @@ void motionCB(int x, int y)
 	}
 	else if (mouseMovePressed == true)
 	{
-		camera.move((x - lastX) / static_cast<float>(width),
-				(lastY - y) / static_cast<float>(height), 0.0);
+        camera.move((x - lastX) / static_cast<float>(width),
+            (lastY - y) / static_cast<float>(height), 0.0);
 		lastX = x;
 		lastY = y;
 	}
@@ -248,65 +248,63 @@ void motionCB(int x, int y)
 
 void manual()
 {
-	cout << endl;
-	cout << "==================manual=================" << std::endl;
-	cout << std::endl;
-	cout << "   rotate  :  left click & drag" << std::endl;
-	cout << "    zoom   :  ctrl + left click & drag" << std::endl;
-	cout << " translate :  shift + left click & drag" << std::endl;
-	cout << "  'f' key  :  full screen" << std::endl;
-    
+    cout << endl;
+    cout << "==================manual=================" << std::endl;
+    cout << std::endl;
+    cout << "   rotate  :  left click & drag" << std::endl;
+    cout << "    zoom   :  ctrl + left click & drag" << std::endl;
+    cout << " translate :  shift + left click & drag" << std::endl;
+    cout << "  'f' key  :  full screen" << std::endl;
+
     if (mode == Tree::Mode::IK) {
-	cout << " 'a' & 'd' :  move desired position -x, +x (spatial frame)" << std::endl;
-	cout << " 'w' & 's' :  move desired position +y, -y" << endl;
-	cout << " 'j' & 'k' :  move desired position +z, -z" << endl;
-	cout << "'x','y','z':  rotate desired orientation (body frame)" << endl;
+
+    cout << " 'a' & 'd' :  move desired position -x, +x (spatial frame)" << std::endl;
+    cout << " 'w' & 's' :  move desired position +y, -y" << endl;
+    cout << " 'j' & 'k' :  move desired position +z, -z" << endl;
+    cout << "'x','y','z':  rotate desired orientation (body frame)" << endl;
     }
-	cout << std::endl;
-	cout << "=========================================" << std::endl;
+    cout << std::endl;
+    cout << "=========================================" << std::endl;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	glutInit(&argc, argv);
-    
-	const string filename = "../MotionData2/cmu/16_01_jump.bvh";
+
+    const string filename = "../MotionData2/cmu/16_01_jump.bvh";
     human = make_unique<Tree>(mode, filename);
-    
+
     if (mode == Tree::Mode::IK) {
-        frame = -1;
         int num = IK::joint_selection();
-        cout << (human->joints)[num] << endl;
         ik = make_unique<IK>((human->joints)[num],
                                      human->num_motion_channels);
-    } else if (mode == Tree::Mode::BVH) {
-        frame = 0;
     } else if (mode == Tree::Mode::BLENDING) {
-        frame = -1;
         blend = make_unique<blending::Blending>(human->num_motion_channels);
-        VectorXd zero_ang(human->num_motion_channels);
-        zero_ang.setZero();
-        human->setAng(zero_ang);
+        MOTION motion = (blend->getMotionVec())[0];
+        human->setMotion(motion);
+
+        // VectorXd zero_ang(human->num_motion_channels);
+        // zero_ang.setZero();
+        // human->setAng(zero_ang);
     }
-    
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
-	glutInitWindowSize(width, height);
-	glutCreateWindow("Viewer");
-	manual();
 
-	camera.resize(width, height);
-	glClearColor(0.8, 0.8, 0.8, 1.0);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
+    glutInitWindowSize(width, height);
+    glutCreateWindow("Viewer");
+    manual();
 
-	glClearDepth(1.0);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_DEPTH_TEST);
-	glutDisplayFunc(display);
+    camera.resize(width, height);
+    glClearColor(0.8, 0.8, 0.8, 1.0);
+
+    glClearDepth(1.0);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glutDisplayFunc(display);
     glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
-	glutKeyboardFunc(keyboardCB);
-	glutReshapeFunc(reshape);
-	glutMotionFunc(motionCB);
-	glutMouseFunc(mouseCB);
+    glutKeyboardFunc(keyboardCB);
+    glutReshapeFunc(reshape);
+    glutMotionFunc(motionCB);
+    glutMouseFunc(mouseCB);
 
-	glutMainLoop();
-	return 0;
+    glutMainLoop();
+    return 0;
 }

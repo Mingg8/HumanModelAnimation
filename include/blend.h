@@ -8,9 +8,12 @@ namespace blending{
 class Blending {
 public:
     Blending(int _num_motion_channels);
+    vector<MOTION> getMotionVec();
+    MOTION blendMotion();
+
 private:
     const char* file_path = "../MotionData2/cmu/";
-    const char* motions[10] = {
+    vector<const char*> motion_names = {
         "16_58_walk.bvh",
         "16_55_run.bvh"
     };

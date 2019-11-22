@@ -7,16 +7,25 @@ Blending::Blending(int _num_motion_channels) {
 }
     
 void Blending::loadFiles() {
-    for (size_t i = 0; i < motion_vec.size(); i++) {
+    cout << "load file" << endl;
+    for (size_t i = 0; i < motion_names.size(); i++) {
         MOTION motion;
-        
-        char filename[100];
-        strcpy(filename, file_path);
-        strcat(filename, motions[i]);
-        
+
+        string filename(file_path);
+        filename.append(motion_names[i]);
         BVH::loadOnlyMotion(filename, motion, num_motion_channels);
         
         motion_vec.push_back(motion);
     }
 }    
+
+vector<MOTION> Blending::getMotionVec() {
+    return motion_vec;
 }
+
+MOTION Blending::blendMotion() {
+    return motion_vec[1];
+}
+
+}
+

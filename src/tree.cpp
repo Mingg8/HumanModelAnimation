@@ -70,3 +70,7 @@ void Tree::setAng(VectorXd ang) {
         index += channel_num;
     }
 }
+
+void Tree::setMotion(MOTION _motion){
+    motionData = _motion;
+}
