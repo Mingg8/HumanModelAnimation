@@ -174,7 +174,7 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
     } else if (mode == Tree::Mode::BLENDING) {
         switch (keyPressed) {
             case 'r':
-                MOTION motion = blend->blendMotion();
+                MOTION motion = blend->blendMotion(human->motionData.data.row(frame), 1);
                 frame = 0;
                 human->setMotion(motion);
 #warning change motion!!

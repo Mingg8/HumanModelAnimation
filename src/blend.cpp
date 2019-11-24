@@ -72,9 +72,9 @@ void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
     }
     
     for (size_t i = 0; i < motion_data.rows(); i ++) {
-        Matrix3d angle_mat = euler2mat(Vector3d(motion_data(i, 3),
-                                                motion_data(i, 4),
-                                                motion_data(i, 5)));
+        Matrix3d angle_mat = euler2mat(Vector3d(motion_data(i, 3) / 180.0 * M_PI,
+                                                motion_data(i, 4) / 180.0 * M_PI,
+                                                motion_data(i, 5) / 180.0 * M_PI));
         Vector3d res_ang = mat2euler(cur_mat * next_mat.inverse() * angle_mat);
 
         motion_data(i, 3) = res_ang(0) / M_PI * 180.0;
