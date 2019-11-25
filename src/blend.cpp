@@ -38,17 +38,72 @@ MOTION Blending::blendMotion(VectorXd cur_ang, int frame_num) {
     align(cur_ang, next_motion_data);
     
     // warping
-//    int warp_frame_num = next_motion_data.rows() / 2;
-//    VectorXd s_curve = getSCurve(warp_frame_num);
-//    for (size_t i = 0; i < warp_frame_num; i ++) {
-//        VectorXd offset = subtract(cur_ang, next_motion_data.row(i));
-//        VectorXd warped_vec = addOffset(next_motion_data.row(i), offset);
-//        (next_motion_data.row(i)).tail(joint_num - 6) = warped_vec.tail(joint_num - 6);
-//    }
+    int warp_frame_num = next_motion_data.rows() / 4;
+    VectorXd s_curve = getSCurve(warp_frame_num);
+//    cout << "cur_ang: " <<  cur_ang.tail(3) << endl;
+    for (size_t i = 0; i < warp_frame_num; i ++) {
+        VectorXd offset = getOrientationOffset(cur_ang, next_motion_data.row(i));
+//        cout << offset.tail(3).transpose() << endl;
+        VectorXd warped_vec = addOffset(next_motion_data.row(i), offset * s_curve(i));
+//        cout << "warped: " << (warped_vec.tail(3)).transpose() << endl;
+        (next_motion_data.row(i)).tail(joint_num - 6) = warped_vec.tail(joint_num - 6);
+    }
     
     motion_vec[frame_num].data = next_motion_data;
     return motion_vec[frame_num];
 }
+    
+VectorXd Blending::addOffset(VectorXd next_ang, VectorXd offset) {
+    VectorXd res = next_ang;
+    
+    next_ang = next_ang / 180.0 * M_PI;
+    int num = next_ang.size() / 3;
+    for (size_t i = 2; i < 3; i ++) {
+        Vector3d offset_part = Vector3d(offset(3 * i),
+                                        offset(3 * i + 1),
+                                        offset(3 * i + 2));
+        Matrix3d next_mat = euler2mat(Vector3d(next_ang(3 * i),
+                                               next_ang(3 * i + 1),
+                                               next_ang(3 * i + 2)));
+        AngleAxisd aa(offset_part.norm(), offset_part / offset_part.norm());
+        Matrix3d offset_mat = aa.toRotationMatrix();
+        Vector3d new_data = mat2euler(offset_mat);
+        res(3 * i) = new_data(0) * 180.0 / M_PI;
+        res(3 * i + 1) = new_data(1) * 180.0 / M_PI;
+        res(3 * i + 2) = new_data(2) * 180.0 / M_PI;
+    }
+    return res;
+}
+
+VectorXd Blending::getOrientationOffset(VectorXd before, VectorXd after) {
+    int size = 0;
+    if (before.size() == after.size()) {
+        size = before.size();
+    } else {
+        cout << "Vector Size Error" << endl;
+    }
+    before = before / 180.0 * M_PI;
+    after = after / 180.0 * M_PI;
+    VectorXd res(size);
+    (res.head(6)).setZero();
+    int num = before.size() / 3;
+    for (int i = 2; i < 3; i++) {
+        Matrix3d bef_mat = euler2mat(Vector3d(before(3 * i),
+                                              before(3 * i + 1),
+                                              before(3 * i + 2)));
+        Matrix3d aft_mat = euler2mat(Vector3d(after(3 * i),
+                                              after(3 * i + 1),
+                                              after(3 * i + 2)));
+        AngleAxisd sub_aa;
+        sub_aa.fromRotationMatrix(bef_mat * aft_mat.inverse());
+        res(3 * i) = sub_aa.axis()(0) * sub_aa.angle();
+        res(3 * i + 1) = sub_aa.axis()(1) * sub_aa.angle();
+        res(3 * i + 2) = sub_aa.axis()(2) * sub_aa.angle();
+    }
+    
+    return res;
+}
+
 
 void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
     // root segment
@@ -65,12 +120,14 @@ void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
                                            next_rad(4),
                                            next_rad(5)));
     
+    // pos offset
     for (size_t i = 0; i < motion_data.rows(); i ++) {
         Vector3d pos_t = (motion_data.row(i)).head(3);
         Vector3d tmp = cur_mat * next_mat.inverse() * (pos_t - next_pos) + cur_pos;
         (motion_data.row(i)).head(3) = tmp;
     }
     
+    // orientation offset
     for (size_t i = 0; i < motion_data.rows(); i ++) {
         Matrix3d angle_mat = euler2mat(Vector3d(motion_data(i, 3) / 180.0 * M_PI,
                                                 motion_data(i, 4) / 180.0 * M_PI,
@@ -82,57 +139,8 @@ void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
         motion_data(i, 5) = res_ang(2) / M_PI * 180.0;
     }
 }
-
-VectorXd Blending::getOffset(VectorXd a, VectorXd b) {
-    int size = 0;
-    if (a.size() == b.size()) {
-        size = a.size();
-    } else {
-        cout << "Vector Size Error" << endl;
-    }
-    VectorXd res(size);
-    res.head(3) = a.head(3) - b.head(3);
-    a = a / 180.0 * M_PI;
-    b = b / 180.0 * M_PI;
-    Matrix3d a_mat = euler2mat(a.tail(3));
-    Matrix3d b_mat = euler2mat(b.tail(3));
     
-    AngleAxisd sub_aa;
-    sub_aa.fromRotationMatrix(a_mat * b_mat.inverse());
-    res.head(3) = a_mat * b_mat.inverse() * res.head(3);
-    res.tail(3) = sub_aa.axis() * sub_aa.angle();
-    return res;
-}
     
-VectorXd Blending::subtract(VectorXd a, VectorXd b) {
-    int size = 0;
-    if (a.size() == b.size()) {
-        size = a.size();
-    } else {
-        cout << "Vector Size Error" << endl;
-    }
-    VectorXd res(size);
-    res.head(3) = a.head(3) - b.head(3);
-    a = a / 180.0 * M_PI;
-    b = b / 180.0 * M_PI;
-    int num = a.size() / 3;
-    for (int i = 1; i < num; i++) {
-        Matrix3d a_mat = euler2mat(Vector3d(a(3 * i),
-                                            a(3 * i + 1),
-                                            a(3 * i + 2)));
-        Matrix3d b_mat = euler2mat(Vector3d(b(3 * i),
-                                            b(3 * i + 1),
-                                            b(3 * i + 2)));
-        AngleAxisd sub_aa;
-        sub_aa.fromRotationMatrix(a_mat * b_mat.inverse());
-        res(3 * i) = sub_aa.axis()(0) * sub_aa.angle();
-        res(3 * i + 1) = sub_aa.axis()(1) * sub_aa.angle();
-        res(3 * i + 2) = sub_aa.axis()(2) * sub_aa.angle();
-    }
-    
-    return res;
-}
-
 Matrix3d Blending::euler2mat(Vector3d euler) {
     Matrix3d res;
     res = AngleAxisd(euler(0), Vector3d::UnitZ())

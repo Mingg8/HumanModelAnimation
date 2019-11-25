@@ -23,8 +23,7 @@ private:
     
     void loadFiles();
     VectorXd getSCurve(int frame_num);
-    VectorXd getOffset(VectorXd a, VectorXd b);
-    VectorXd subtract(VectorXd a, VectorXd b);
+    VectorXd getOrientationOffset(VectorXd a, VectorXd b);
     void align(VectorXd a, MatrixXd &b);
     VectorXd addOffset(VectorXd angle, VectorXd offset);
     Matrix3d euler2mat(Vector3d euler);
