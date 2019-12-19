@@ -4,6 +4,7 @@ namespace blending{
 Blending::Blending(int _num_motion_channels) {
     num_motion_channels = _num_motion_channels;
     loadFiles();
+    current_bvh_num = -1;
 }
 
 VectorXd Blending::getSCurve(int _warp_frame_num) {
@@ -33,21 +34,22 @@ vector<MOTION> Blending::getMotionVec() {
 }
 
 MOTION Blending::blendMotion(VectorXd cur_ang, int frame_num) {
+    current_bvh_num = frame_num;
+    if (frame_num == 1) cout << "start running" << endl;
+    if (frame_num == 2) cout << "start jumping" << endl;
+    if (frame_num == 3) cout << "start veering" << endl;
     MatrixXd next_motion_data = motion_vec[frame_num].data;
     int joint_num = next_motion_data.cols();
     align(cur_ang, next_motion_data);
     
     // warping
-    int warp_frame_num = next_motion_data.rows() / 4;
-    VectorXd s_curve = getSCurve(warp_frame_num);
-//    cout << "cur_ang: " <<  cur_ang.tail(3) << endl;
-    for (size_t i = 0; i < warp_frame_num; i ++) {
-        VectorXd offset = getOrientationOffset(cur_ang, next_motion_data.row(i));
-//        cout << offset.tail(3).transpose() << endl;
-        VectorXd warped_vec = addOffset(next_motion_data.row(i), offset * s_curve(i));
-//        cout << "warped: " << (warped_vec.tail(3)).transpose() << endl;
-        (next_motion_data.row(i)).tail(joint_num - 6) = warped_vec.tail(joint_num - 6);
-    }
+    // int warp_frame_num = next_motion_data.rows() / 4;
+    // VectorXd s_curve = getSCurve(warp_frame_num);
+    // for (size_t i = 0; i < warp_frame_num; i ++) {
+    //     VectorXd offset = getOrientationOffset(cur_ang, next_motion_data.row(i));
+    //     VectorXd warped_vec = addOffset(next_motion_data.row(i), offset * s_curve(i));
+    //     (next_motion_data.row(i)).tail(joint_num - 6) = warped_vec.tail(joint_num - 6);
+    // }
     
     motion_vec[frame_num].data = next_motion_data;
     return motion_vec[frame_num];
@@ -164,5 +166,12 @@ Vector3d Blending::mat2euler(Matrix3d mat) {
 //        else res(2) -= M_PI;
 //    }
     return res;
+}
+
+int Blending::getBvhNum() {
+    return current_bvh_num;
+}
+void Blending::setBvhNum(int num) {
+    current_bvh_num = num;
 }
 }

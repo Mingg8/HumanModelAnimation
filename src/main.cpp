@@ -89,7 +89,7 @@ void reshape(int w, int h) {
 }
 
 void move(int millisec) {
-    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BLENDING) {
+    if (mode == Tree::Mode::BVH) {
         if (frame < human->motionData.num_frames - 1) {
             human->setAng(human->motionData.data.row(frame));
             frame++;
@@ -100,6 +100,16 @@ void move(int millisec) {
         human->setAngVel(ang_vel);
         glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
         glutPostRedisplay();
+    } else if (mode == Tree::Mode::BLENDING) {
+        if (blend->getBvhNum() != -1){
+            if (frame < human->motionData.num_frames - 1) {
+                human->setAng(human->motionData.data.row(frame));
+                frame++;
+            }
+            else {
+                blend->setBvhNum(-1);
+            }
+        }
     }
     glutTimerFunc(human->motionData.frame_time*1000.0, move, 1);
     glutPostRedisplay();
@@ -116,11 +126,11 @@ void display() {
     
     VectorXd vec = (human->getRoot())->current_angle;
     glTranslated(-vec(0),
-                 0.0,
+                 -vec(1),
                  -vec(2));
     human->drawMyHuman(human->getRoot(), frame);
     
-    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BLENDING) {
+    if (mode == Tree::Mode::BVH) {
         drawFloor();
     }
     else if (mode == Tree::Mode::IK) {
@@ -137,15 +147,15 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
 	double rot_speed = 0.2;
 	Vector3d zero(0, 0, 0);
 	switch (keyPressed) {
-		case 'f':
-			if (fullScreen == true) {
-				glutReshapeWindow(width, height);
-				fullScreen = false;
-			} else {
-				glutFullScreen();
-				fullScreen = true;
-			}
-			break;
+		// case 'f':
+		// 	if (fullScreen == true) {
+		// 		glutReshapeWindow(width, height);
+		// 		fullScreen = false;
+		// 	} else {
+		// 		glutFullScreen();
+		// 		fullScreen = true;
+		// 	}
+		// 	break;
 		case 'q':
 			exit(0);
 			break;
@@ -172,11 +182,40 @@ void keyboardCB(unsigned char keyPressed, int x, int y)
                 ik->moveDesired(rot_speed, zero, Vector3d(0, 0, 1)); break;
         }
     } else if (mode == Tree::Mode::BLENDING) {
+        MOTION motion;
         switch (keyPressed) {
+            case 'f':
+                if (blend->getBvhNum() != 2) {
+                    motion = blend->blendMotion(human->motionData.data.row(frame), 1);
+                    frame = 0;
+                    human->setMotion(motion); break;
+                }
+            case 'j':
+                if (blend->getBvhNum() != 2) {
+                    motion = blend->blendMotion(human->motionData.data.row(frame), 2);
+                    frame = 0;
+                    human->setMotion(motion); break;
+                }
+            case 'l':
+                if (blend->getBvhNum() == 0) {
+                    motion = blend->blendMotion(human->motionData.data.row(frame), 3);
+                    frame = 0;
+                    human->setMotion(motion); break;
+                }
             case 'r':
-                MOTION motion = blend->blendMotion(human->motionData.data.row(frame), 1);
-                frame = 0;
-                human->setMotion(motion);
+                if (blend->getBvhNum() == 0) {
+                    motion = blend->blendMotion(human->motionData.data.row(frame), 4);
+                    frame = 0;
+                    human->setMotion(motion); break;
+                }
+            case 'w':
+                if (blend->getBvhNum() != 2) {
+                    motion = blend->blendMotion(human->motionData.data.row(frame), 0);
+                    frame = 0;
+                    human->setMotion(motion); break;
+                }
+
+            
 #warning change motion!!
 #warning if motion changed, set frame to zero
 #warning    set human->motionData (+blend)
@@ -254,7 +293,7 @@ void manual()
     cout << "   rotate  :  left click & drag" << std::endl;
     cout << "    zoom   :  ctrl + left click & drag" << std::endl;
     cout << " translate :  shift + left click & drag" << std::endl;
-    cout << "  'f' key  :  full screen" << std::endl;
+    // cout << "  'f' key  :  full screen" << std::endl;
 
     if (mode == Tree::Mode::IK) {
 
@@ -281,10 +320,6 @@ int main(int argc, char** argv) {
         blend = make_unique<blending::Blending>(human->num_motion_channels);
         MOTION motion = (blend->getMotionVec())[0];
         human->setMotion(motion);
-
-        // VectorXd zero_ang(human->num_motion_channels);
-        // zero_ang.setZero();
-        // human->setAng(zero_ang);
     }
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
