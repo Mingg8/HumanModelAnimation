@@ -42,20 +42,21 @@ MOTION Blending::blendMotion(VectorXd cur_ang, int frame_num) {
     int joint_num = next_motion_data.cols();
     align(cur_ang, next_motion_data);
     
-    // warping
+    // // warping
     // int warp_frame_num = next_motion_data.rows() / 4;
     // VectorXd s_curve = getSCurve(warp_frame_num);
     // for (size_t i = 0; i < warp_frame_num; i ++) {
     //     VectorXd offset = getOrientationOffset(cur_ang, next_motion_data.row(i));
-    //     VectorXd warped_vec = addOffset(next_motion_data.row(i), offset * s_curve(i));
+    //     VectorXd warped_vec = addOriOffset(next_motion_data.row(i), offset * s_curve(i));
     //     (next_motion_data.row(i)).tail(joint_num - 6) = warped_vec.tail(joint_num - 6);
     // }
     
     motion_vec[frame_num].data = next_motion_data;
     return motion_vec[frame_num];
 }
-    
-VectorXd Blending::addOffset(VectorXd next_ang, VectorXd offset) {
+
+// add offset of orientation (not translation)
+VectorXd Blending::addOriOffset(VectorXd next_ang, VectorXd offset) {
     VectorXd res = next_ang;
     
     next_ang = next_ang / 180.0 * M_PI;
@@ -69,6 +70,7 @@ VectorXd Blending::addOffset(VectorXd next_ang, VectorXd offset) {
                                                next_ang(3 * i + 2)));
         AngleAxisd aa(offset_part.norm(), offset_part / offset_part.norm());
         Matrix3d offset_mat = aa.toRotationMatrix();
+        offset_mat = offset_mat * next_mat;
         Vector3d new_data = mat2euler(offset_mat);
         res(3 * i) = new_data(0) * 180.0 / M_PI;
         res(3 * i + 1) = new_data(1) * 180.0 / M_PI;
@@ -108,6 +110,8 @@ VectorXd Blending::getOrientationOffset(VectorXd before, VectorXd after) {
 
 
 void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
+    // align: motion_data - (motion_data(0) - cur_ang)
+    // only first three components
     // root segment
     VectorXd next_ang = motion_data.row(0);
     Vector3d cur_pos = cur_ang.head(3);
@@ -121,11 +125,13 @@ void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
     Matrix3d next_mat = euler2mat(Vector3d(next_rad(3),
                                            next_rad(4),
                                            next_rad(5)));
+    Matrix3d in_plane_rot = inPlaneRotation(cur_mat, next_mat);
     
     // pos offset
     for (size_t i = 0; i < motion_data.rows(); i ++) {
         Vector3d pos_t = (motion_data.row(i)).head(3);
-        Vector3d tmp = cur_mat * next_mat.inverse() * (pos_t - next_pos) + cur_pos;
+        Vector3d tmp = in_plane_rot * (pos_t - next_pos) + cur_pos;
+        tmp(1) = pos_t(1);
         (motion_data.row(i)).head(3) = tmp;
     }
     
@@ -134,7 +140,7 @@ void Blending::align(VectorXd cur_ang, MatrixXd &motion_data) {
         Matrix3d angle_mat = euler2mat(Vector3d(motion_data(i, 3) / 180.0 * M_PI,
                                                 motion_data(i, 4) / 180.0 * M_PI,
                                                 motion_data(i, 5) / 180.0 * M_PI));
-        Vector3d res_ang = mat2euler(cur_mat * next_mat.inverse() * angle_mat);
+        Vector3d res_ang = mat2euler(in_plane_rot * angle_mat);
 
         motion_data(i, 3) = res_ang(0) / M_PI * 180.0;
         motion_data(i, 4) = res_ang(1) / M_PI * 180.0;
@@ -174,4 +180,18 @@ int Blending::getBvhNum() {
 void Blending::setBvhNum(int num) {
     current_bvh_num = num;
 }
+Matrix3d Blending::inPlaneRotation(Matrix3d cur_mat, Matrix3d next_mat) {
+    Matrix3d rot;
+    // rot = getZRot(cur_mat) * getZRot(next_mat.inverse());
+    rot = getZRot(cur_mat * next_mat.inverse());
+    return rot;
+}
+
+Matrix3d Blending::getZRot(Matrix3d mat) {
+    Vector3d euler = mat2euler(mat);
+    euler(0) = 0; euler(2) = 0;
+    Matrix3d rot = euler2mat(euler);
+    return rot;
+}
+
 }

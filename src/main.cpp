@@ -63,8 +63,8 @@ void drawBallWithCoord(Vector3d pos, Matrix3d rot, Vector3d color) {
 
 void drawFloor() {
     double y_height = 0.0;
-    int GridSizeX = 16;
-    int GridSizeY = 16;
+    int GridSizeX = 100;
+    int GridSizeY = 100;
     int SizeX = 80;
     int SizeY = 80;
     glBegin(GL_QUADS);
@@ -125,12 +125,13 @@ void display() {
     glPushMatrix();
     
     VectorXd vec = (human->getRoot())->current_angle;
+    // cout << vec.head(3).transpose() << endl;
     glTranslated(-vec(0),
                  -vec(1),
                  -vec(2));
     human->drawMyHuman(human->getRoot(), frame);
     
-    if (mode == Tree::Mode::BVH) {
+    if (mode == Tree::Mode::BVH || mode == Tree::Mode::BLENDING) {
         drawFloor();
     }
     else if (mode == Tree::Mode::IK) {
